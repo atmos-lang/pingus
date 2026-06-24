@@ -53,9 +53,24 @@ Caveat learned: escape statements use call syntax
 (`break()`, `return(x)`, `escape(:t,v)`); recorded in the
 atmos skill.
 
+Background (done):
+
+- Inlined in `menu.atm`: `LAYERS` table (records with
+  `png=DIR++...`, `y`, `speed`), `Layer (l)` task, spawned into
+  a `layers` pool before the buttons (drawn behind).
+- `!`/`N` (top-center) draw; `x` in `[0,W)`, two copies at
+  `x ± W/2` for seamless horizontal wrap (W=800).
+- Table mirrors the C++/Céu source: top edge in px
+  (`0,150,200,429,500`), speed in px/s (`12..200`). Top-left
+  anchor makes top/bottom coverage automatic (`layer1` at 0,
+  full-width `layer4` 429+171=600 reaches bottom). Chosen over
+  `%`/center, which forced height-dependent y values.
+- Buttons stay `%` (position-only, resolution-independent).
+
 Pending:
 
-- Background layers, logo, footer texts.
+- Logo, footer texts.
+- Button hover-highlight (+ `tick` sound).
 - CPS: map each `:Id` to its real screen.
 
 ## Behavior

@@ -2,7 +2,8 @@ require "atmos.env.pico"
 val pico = require "pico"
 
 pico.set.window [ title="Pingus" ]
-pico.set.dim ['!', w=800, h=600]
+set W = 800
+pico.set.dim ['!', w=W, h=600]
 
 val Menu = require "menu"
 loop {
