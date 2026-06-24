@@ -16,9 +16,13 @@ Port of Pingus to the programming language Atmos.
 - Old port to Céu
     - `./pingus.ceu/`
     - https://github.com/fsantanna/pingus
+
+- Control-flow patterns
     - https://fsantanna.github.io/pingus/
 
 # Porting process
+
+Between each step, provide feedback to the user:
 
 1. designate a feature
 2. execute locally
@@ -27,8 +31,9 @@ Port of Pingus to the programming language Atmos.
     - screenshot the virtual display
         - `import -window root out.png`
 3. trace behavior
-3. specify feature in a local plan
-4. compare C++ and Céu versions
-5. propose in Atmos
+4. specify feature in a local plan
+5. compare C++ and Céu versions
+    - identify the control-flow patterns
 6. update plan
-7. implement
+7. propose in Atmos
+8. implement

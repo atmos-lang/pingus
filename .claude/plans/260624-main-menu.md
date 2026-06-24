@@ -9,9 +9,9 @@ Code lives in the repo root (`.`).
 - [x] execute locally (offscreen) + screenshot
 - [x] trace behavior
 - [x] specify feature (this plan)
-- [x] compare C++ and Céu versions
+- [x] compare C++ and Céu versions + identify patterns
+- [x] update plan
 - [ ] propose in Atmos
-- [ ] update plan
 - [ ] implement
 
 ## Behavior
@@ -66,6 +66,21 @@ A second copy is drawn at `x - width` for seamless wrapping.
 
 The Céu port is the closest model for Atmos: tasks composed
 with `par`, buttons spawned, clicks awaited.
+
+### Control-flow patterns
+
+| # | Pattern      | Where in the menu                            |
+|---|--------------|----------------------------------------------|
+| 1 | FSM          | button hover: enter -> highlight -> leave,   |
+|   |              | plays `tick`                                 |
+| 2 | Continuation | menu result `escape STORY/EDITOR/...` tells  |
+|   |              | the caller the next screen                   |
+| 3 | Dispatching  | `every redraw` fans out to layers, logo,     |
+|   |              | buttons                                      |
+| 4 | Lifespan     | menu spawns bg + 5 buttons + logo; ending it |
+|   |              | kills all; each button owns its rect/sprites |
+| 5 | Signaling    | button `emit ok_clicked` -> menu;            |
+|   |              | `emit go_options` pauses the screen          |
 
 ## Propose in Atmos
 
