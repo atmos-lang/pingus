@@ -35,12 +35,14 @@ Notes:
 
 Architecture (working):
 
-- `Button` uses `watching <click> { draw }`, returns its id.
+- `Button (id, text, x, y)` builds its rect (`w,h` fixed inside),
+  uses `watching <click> { draw }`, returns its id.
 - Menu `task ()` spawns 5 buttons in a pool and returns the
-  clicked id via `watching :any buttons { await(false) }`
-  (no loop inside the menu).
-- `main.atm` owns the loop: `val id = await menu()`, prints,
-  `break()` on `:Exit`, then `pico.quit()` (the CPS seam).
+  clicked id via `await :any buttons` (no loop inside the menu).
+- `main.atm` owns the loop: `val id = await Menu()`, then
+  `until(id == :Exit)` (the CPS seam). No `pico.quit()` needed:
+  when the main chunk ends the program task dies and the env
+  shuts down (`run.lua` M.loop).
 
 Verified (clicks via `xdotool`):
 
