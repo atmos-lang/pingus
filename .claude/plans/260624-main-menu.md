@@ -73,9 +73,17 @@ Logo (done):
   pingus.cpp); drawn `['%', x=0.5, y=0.2]` (center anchor),
   spawned after layers, before buttons.
 
+Footer (done):
+
+- `FOOTER` table (`infos` 4-line copyright + `help` string).
+- pico text is single-line (`TTF_RenderText_Blended`), so the
+  copyright is drawn line-by-line (`loop i, txt in FOOTER.infos`).
+- black help bar (filled rect, bottom) + centered help text.
+- buttons pool scoped in a `do { ... await :any buttons }` block
+  (the do is the task's last expr → returns the clicked id).
+
 Pending:
 
-- Footer texts (copyright + help bar).
 - Button hover-highlight (+ `tick` sound).
 - CPS: map each `:Id` to its real screen.
 
