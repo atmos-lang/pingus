@@ -1,0 +1,9 @@
+require "atmos.env.pico"
+val pico = require "pico"
+
+pico.set.window [ title="Pingus" ]
+pico.set.dim ['!', w=800, h=600]
+
+val menu = require "menu"
+await menu()
+pico.quit()
