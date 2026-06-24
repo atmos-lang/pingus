@@ -1,5 +1,4 @@
 val pico = require "pico"
-val DIR = "data/images/core/menu/"
 
 ;; y is the layer's top edge (px) and speed its scroll (px/s).
 val LAYERS = [
@@ -8,7 +7,9 @@ val LAYERS = [
     [ png=DIR++"layer3.png", y=200, speed=50  ],
     [ png=DIR++"layer4.png", y=429, speed=100 ],
     [ png=DIR++"layer5.png", y=500, speed=200 ],
-]
+] where {
+    DIR = "data/images/core/menu/"
+}
 
 ;; Layer: scrolls one image horizontally, wrapping at the screen width.
 val task Layer (l) {
@@ -47,6 +48,12 @@ task () {
     pin layers = tasks(5)
     loop _, l in LAYERS {
         spawn @layers Layer(l)
+    }
+    spawn {
+        val png = "data/images/core/misc/logo.png"
+        loop on :draw {
+            pico.output.draw.image(png, ['%', x=0.5, y=0.2])
+        }
     }
     pin buttons = tasks(5)
     spawn @buttons Button(:Story,     "Story",     0.35, 0.45)

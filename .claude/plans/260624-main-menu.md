@@ -67,9 +67,15 @@ Background (done):
   `%`/center, which forced height-dependent y values.
 - Buttons stay `%` (position-only, resolution-independent).
 
+Logo (done):
+
+- `LOGO = "data/images/core/misc/logo.png"` (copied from
+  pingus.cpp); drawn `['%', x=0.5, y=0.2]` (center anchor),
+  spawned after layers, before buttons.
+
 Pending:
 
-- Logo, footer texts.
+- Footer texts (copyright + help bar).
 - Button hover-highlight (+ `tick` sound).
 - CPS: map each `:Id` to its real screen.
 
