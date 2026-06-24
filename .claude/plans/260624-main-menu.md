@@ -33,9 +33,26 @@ Notes:
     - `xvfb-run -a -s "-screen 0 800x600x24" atmos main.atm`
 - Button visibility: stroke box + filled text (both white).
 
+Architecture (working):
+
+- `Button` uses `watching <click> { draw }`, returns its id.
+- Menu `task ()` spawns 5 buttons in a pool and returns the
+  clicked id via `watching :any buttons { await(false) }`
+  (no loop inside the menu).
+- `main.atm` owns the loop: `val id = await menu()`, prints,
+  `break()` on `:Exit`, then `pico.quit()` (the CPS seam).
+
+Verified (clicks via `xdotool`):
+
+- Story / Options / Exit clicks each return the right id.
+- Exit terminates the app cleanly.
+
+Caveat learned: escape statements use call syntax
+(`break()`, `return(x)`, `escape(:t,v)`); recorded in the
+atmos skill.
+
 Pending:
 
-- Click verification needs `xdotool` (not installed).
 - Background layers, logo, footer texts.
 - CPS: map each `:Id` to its real screen.
 

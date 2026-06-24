@@ -22,6 +22,9 @@ Port of Pingus to the programming language Atmos.
 
 # Porting process
 
+**Never execute the game.**
+Ask me for permission.
+
 Between each step, provide feedback to the user:
 
 1. designate a feature
