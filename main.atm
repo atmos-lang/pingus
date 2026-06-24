@@ -4,6 +4,9 @@ val pico = require "pico"
 pico.set.window [ title="Pingus" ]
 pico.set.dim ['!', w=800, h=600]
 
-val menu = require "menu"
-await menu()
-pico.quit()
+val Menu = require "menu"
+loop {
+    val id = await Menu()
+    until(id == :Exit)
+    print("clicked:", id)
+}
