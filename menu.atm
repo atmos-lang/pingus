@@ -1,7 +1,8 @@
 val pico = require "pico"
 
 ;; Button: draws a labeled box; terminates on inside-click, returns its id.
-val task Button (id, text, rect) {
+val task Button (id, text, x, y) {
+    val rect = ['%', x=x, y=y, w=0.22, h=0.08]
     watching :mouse.button.dn until pico.vs.pos.rect(it, rect) {
         loop on :draw {
             pico.set.pencil [ color="white", style=:stroke ]
@@ -16,10 +17,10 @@ val task Button (id, text, rect) {
 ;; Menu: spawns the 5 buttons and returns the clicked id (no loop).
 task () {
     pin buttons = tasks(5)
-    spawn @buttons Button(:Story,     "Story",     ['%', x=0.35, y=0.42, w=0.22, h=0.08])
-    spawn @buttons Button(:Editor,    "Editor",    ['%', x=0.65, y=0.42, w=0.22, h=0.08])
-    spawn @buttons Button(:Levelsets, "Levelsets", ['%', x=0.35, y=0.55, w=0.22, h=0.08])
-    spawn @buttons Button(:Options,   "Options",   ['%', x=0.65, y=0.55, w=0.22, h=0.08])
-    spawn @buttons Button(:Exit,      "Exit",      ['%', x=0.5,  y=0.68, w=0.22, h=0.08])
+    spawn @buttons Button(:Story,     "Story",     0.35, 0.42)
+    spawn @buttons Button(:Editor,    "Editor",    0.65, 0.42)
+    spawn @buttons Button(:Levelsets, "Levelsets", 0.35, 0.55)
+    spawn @buttons Button(:Options,   "Options",   0.65, 0.55)
+    spawn @buttons Button(:Exit,      "Exit",      0.5,  0.68)
     await :any buttons
 }
