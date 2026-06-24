@@ -1,13 +1,14 @@
 val pico = require "pico"
 val DIR = "data/images/core/menu/"
 
-;; y is the layer center and speed the scroll, both as screen fractions.
+;; y is the layer's vertical center; speed its scroll, both as
+;; screen fractions (lower layers sit further down and move faster).
 val LAYERS = [
-    [ png=DIR++"layer1.png", y=0.154, speed=0.015 ],
-    [ png=DIR++"layer2.png", y=0.552, speed=0.031 ],
-    [ png=DIR++"layer3.png", y=0.588, speed=0.063 ],
-    [ png=DIR++"layer4.png", y=0.858, speed=0.125 ],
-    [ png=DIR++"layer5.png", y=0.920, speed=0.250 ],
+    [ png=DIR++"layer1.png", y=0.2, speed=0.02 ],
+    [ png=DIR++"layer2.png", y=0.4, speed=0.04 ],
+    [ png=DIR++"layer3.png", y=0.6, speed=0.08 ],
+    [ png=DIR++"layer4.png", y=0.8, speed=0.16 ],
+    [ png=DIR++"layer5.png", y=0.9, speed=0.32 ],
 ]
 
 ;; Layer: scrolls one image horizontally, wrapping at the screen width.
@@ -22,8 +23,8 @@ val task Layer (l) {
         }
     } with {
         loop on :draw {
-            pico.output.draw.image(l.png, ['%', x=x + 0.5, y=l.y, anchor=:C])
-            pico.output.draw.image(l.png, ['%', x=x - 0.5, y=l.y, anchor=:C])
+            pico.output.draw.image(l.png, ['%', x=x + 0.5, y=l.y])
+            pico.output.draw.image(l.png, ['%', x=x - 0.5, y=l.y])
         }
     }
 }
