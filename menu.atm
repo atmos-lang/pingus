@@ -31,7 +31,7 @@ val task Layer (l) {
 
 ;; Button: draws a labeled box; terminates on inside-click, returns its id.
 val task Button (id, text, x, y) {
-    val rect = ['%', x=x, y=y, w=0.22, h=0.08]
+    val rect = ['%', x=x, y=y, w=0.2, h=0.1]
     watching :mouse.button.dn until pico.vs.pos.rect(it, rect) {
         loop on :draw {
             pico.set.pencil [ color="white", style=:stroke ]
@@ -50,10 +50,10 @@ task () {
         spawn @layers Layer(l)
     }
     pin buttons = tasks(5)
-    spawn @buttons Button(:Story,     "Story",     0.35, 0.42)
-    spawn @buttons Button(:Editor,    "Editor",    0.65, 0.42)
-    spawn @buttons Button(:Levelsets, "Levelsets", 0.35, 0.55)
-    spawn @buttons Button(:Options,   "Options",   0.65, 0.55)
-    spawn @buttons Button(:Exit,      "Exit",      0.5,  0.68)
+    spawn @buttons Button(:Story,     "Story",     0.35, 0.45)
+    spawn @buttons Button(:Editor,    "Editor",    0.65, 0.45)
+    spawn @buttons Button(:Levelsets, "Levelsets", 0.35, 0.6)
+    spawn @buttons Button(:Options,   "Options",   0.65, 0.6)
+    spawn @buttons Button(:Exit,      "Exit",      0.5,  0.75)
     await :any buttons
 }
