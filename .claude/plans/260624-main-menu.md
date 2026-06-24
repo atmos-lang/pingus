@@ -11,8 +11,33 @@ Code lives in the repo root (`.`).
 - [x] specify feature (this plan)
 - [x] compare C++ and Céu versions + identify patterns
 - [x] update plan
-- [ ] propose in Atmos
-- [ ] implement
+- [x] propose in Atmos
+- [x] implement (initial: buttons + print + exit)
+
+## Implementation (initial)
+
+Files in repo root:
+
+| file       | content                                            |
+|------------|----------------------------------------------------|
+| `menu.atm` | `val task Button` + anon `task ()` returned by mod |
+| `main.atm` | window/dim setup; `val menu = require "menu"`       |
+
+Notes:
+
+- Syntax is Atmos v0.7 (`[...]`, `task`, `par :any`, `loop on`,
+  `Nms`, `until`, `pico.set`).
+- The installed binary self-reports `v0.6` but parses v0.7
+  (hardcoded version string).
+- Run offscreen:
+    - `xvfb-run -a -s "-screen 0 800x600x24" atmos main.atm`
+- Button visibility: stroke box + filled text (both white).
+
+Pending:
+
+- Click verification needs `xdotool` (not installed).
+- Background layers, logo, footer texts.
+- CPS: map each `:Id` to its real screen.
 
 ## Behavior
 
