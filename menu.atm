@@ -1,4 +1,32 @@
 val pico = require "pico"
+val DIR = "data/images/core/menu/"
+
+;; y is the layer center and speed the scroll, both as screen fractions.
+val LAYERS = [
+    [ png=DIR++"layer1.png", y=0.154, speed=0.015 ],
+    [ png=DIR++"layer2.png", y=0.552, speed=0.031 ],
+    [ png=DIR++"layer3.png", y=0.588, speed=0.063 ],
+    [ png=DIR++"layer4.png", y=0.858, speed=0.125 ],
+    [ png=DIR++"layer5.png", y=0.920, speed=0.250 ],
+]
+
+;; Layer: scrolls one image horizontally, wrapping at the screen width.
+val task Layer (l) {
+    var x = 0.0
+    par {
+        loop us on :clock {
+            set x = x + ((l.speed * us) / 1000000)
+            if x >= 1 {
+                set x = x - 1
+            }
+        }
+    } with {
+        loop on :draw {
+            pico.output.draw.image(l.png, ['%', x=x + 0.5, y=l.y, anchor=:C])
+            pico.output.draw.image(l.png, ['%', x=x - 0.5, y=l.y, anchor=:C])
+        }
+    }
+}
 
 ;; Button: draws a labeled box; terminates on inside-click, returns its id.
 val task Button (id, text, x, y) {
@@ -14,8 +42,12 @@ val task Button (id, text, x, y) {
     id
 }
 
-;; Menu: spawns the 5 buttons and returns the clicked id (no loop).
+;; Menu: parallax background + 5 buttons; returns the clicked id (no loop).
 task () {
+    pin layers = tasks(5)
+    loop _, l in LAYERS {
+        spawn @layers Layer(l)
+    }
     pin buttons = tasks(5)
     spawn @buttons Button(:Story,     "Story",     0.35, 0.42)
     spawn @buttons Button(:Editor,    "Editor",    0.65, 0.42)
