@@ -97,6 +97,11 @@ Buttons (done — image-based):
 Pending:
 
 - CPS: map each `:Id` to its real screen.
+- TODO: use the original fonts (C++ `pingus_small` for footer,
+  `chalk_large` for button labels); currently using pico's
+  default font.
+- TODO: compare screens side-by-side (Atmos render vs original
+  pingus) and note visual diffs. (don't implement yet)
 
 ## Behavior
 
