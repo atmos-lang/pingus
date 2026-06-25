@@ -4,7 +4,7 @@ Render the original Pingus bitmap fonts in Atmos/pico, since
 pico only renders TTF and the pingus fonts are bitmap
 (`.png` sheet + `.font` metadata).
 
-Used by the main menu (see `260624-main-menu.md`):
+Used by the main menu (see `260624-menu.md`):
 
 - `chalk_large`  = `fonts/chalk-40px`        (button labels)
 - `pingus_small` = `fonts/pingus-small-20px` (footer + help)

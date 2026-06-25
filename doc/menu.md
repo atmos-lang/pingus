@@ -22,15 +22,20 @@ What remains is executable statements.
 |---------|---------------------------------------------|-------:|
 | C++     | `pingus_menu.cpp` 156 + `menu_button.cpp` 65 |    221 |
 | Céu     | `menu.ceu` 125 + `button.ceu` 37            |    162 |
-| Atmos   | `menu.atm` 81 (+ `main.atm` 10 harness)     |  81/91 |
+| Atmos   | `menu.atm` 91 (+ `main.atm` 7 harness)      |  91/98 |
 
 For reference, `cloc` on the two C++ `.cpp` files reports 312
 code lines; the drop to 221 removes brace/boilerplate-only lines.
 
+The +10 in `menu.atm` (vs the earlier 81) is the in-menu screen
+dispatch (`match id -> await Blank`) plus the `Blank` placeholder,
+which moved out of the `main.atm` harness; the C++ `on_click`
+switch is the rough counterpart.
+
 Ratios (useful, `menu.atm` vs C++ impl):
 
-- Atmos ~= 37% of C++,
-- Atmos ~= 50% of Céu.
+- Atmos ~= 41% of C++,
+- Atmos ~= 56% of Céu.
 
 ## Like-for-like adjustment
 
@@ -45,7 +50,7 @@ implement:
 | `show_credits` / `set_hint` / `on_escape_press`  |     ~5 |
 
 ~37 lines of C++ have no port counterpart, so the comparable C++
-is ~184 and Atmos `menu.atm` (81) is ~44% of it.
+is ~184 and Atmos `menu.atm` (91) is ~49% of it.
 
 ## Where the savings are (by concern)
 
@@ -58,8 +63,9 @@ is ~184 and Atmos `menu.atm` (81) is ~44% of it.
 |                  |     |       | `update`/`draw` plumbing elsewhere  |
 | Dispatch         | ~26 |  ~0\* | `draw_background`+`update` callbacks |
 |                  |     |       | -> `loop on :draw` inline per task  |
-| Click handling   | ~15 |    ~7 | `on_click` switch + virtual wiring  |
-|                  |     |       | -> `par :any` / `await` returns id  |
+| Click handling   | ~15 |   ~12 | `on_click` switch + virtual wiring  |
+|                  |     |       | -> `par :any` + in-menu `match id`  |
+|                  |     |       | -> `await Blank`                    |
 | Lifecycle        | ~40 |    ~5 | ctor builds / dtor / manager owns   |
 |                  |     |       | -> `spawn`/pool, auto-abort on      |
 |                  |     |       | scope end                           |
@@ -90,7 +96,8 @@ Atmos shaves further off Céu via table-driven data
   headers) and carries GPL headers.
 - Céu `menu.ceu` embeds a ~36-line `#if 0` block of dead
   reference C++ (excluded above).
-- `main.atm` is the window/loop harness with no equivalent in
-  the counted C++ files.
+- `main.atm` is now just the window setup + `await Menu()`; the
+  screen dispatch moved into `menu.atm` (`Blank` placeholders
+  stand in for the real screens).
 - The port targets a fixed 800x600 window, so it omits the
   original's resolution-scaling path.
