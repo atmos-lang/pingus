@@ -1,0 +1,32 @@
+val pico = require "pico"
+
+;; Intro story screen — STATIC first pass (no events yet):
+;; blackboard frame + a logo placeholder + full static text + a
+;; `>>>` next image. `LOGO` stands in for the real story page image
+;; (story0.png) until pages are added.
+
+val FRAME = "data/images/core/menu/blackboard.png"
+val LOGO  = "data/images/core/misc/logo.png"
+val NEXT  = "data/images/core/misc/next.png"
+
+val TEXT = [
+    "For a long time, the Pingus have lived happily in peace on the",
+    "South Pole along with all the other animals. Everything was in",
+    "balance and it seemed like nothing could disrupt their peace.",
+    "The Pingus were happy and it seemed like this could never end.",
+]
+
+task () {
+    loop on :draw {
+        pico.output.draw.image(FRAME, ['%', x=0.5, y=0.5])
+        pico.output.draw.image(LOGO,  ['%', x=0.5, y=0.3])
+        pico.set.pencil [ color="white" ]
+        loop i, line in TEXT {
+            pico.output.draw.text(line, r) where {
+                y = 0.55 + ((i-1) * 0.05)
+                r = ['%', x=0.5, y=y, h=0.03]
+            }
+        }
+        pico.output.draw.image(NEXT, ['%', x=0.88, y=0.88])
+    }
+}

@@ -48,13 +48,34 @@ Ran `pingus <…/stories/tutorial_intro.story>` offscreen:
 - narrative text below;
 - `>>>` advance arrow bottom-right.
 
+## Céu model (compared)
+
+`cmp/ALL/screens/ceu/story.ceu` is one big `par`:
+
+- a **page loop**: per page, spawn the page image, run a
+  **typewriter** (reveal `substr(text, 0, cur)` over time), then
+  `await next_text`; after the last page `escape true`;
+- a **next button** branch: `on_click -> emit next_text` (also a
+  fast-forward key); `Escape -> escape false` (cancel);
+- **draw** branches: title (`chalk_large`, top-center) + text
+  (`chalk_normal`) + page sprites; backdrop `Wood` + `blackboard`.
+
+Returns a bool (finished/skipped via click vs cancelled).
+
 ## Control-flow patterns
 
-| # | pattern      | here                                       |
-|---|--------------|--------------------------------------------|
-| 2 | Continuation | walk the pages, then -> worldmap           |
-| 1 | FSM          | current page index                         |
-| 3 | Dispatching  | `loop on :draw` draws frame/title/img/text |
+| # | pattern      | here                                          |
+|---|--------------|-----------------------------------------------|
+| 1 | FSM          | page index; typewriter (typing -> done)       |
+| 2 | Continuation | walk pages -> `escape` result -> worldmap;    |
+|   |              | typewriter accumulates until full             |
+| 3 | Dispatching  | draw branch fans out title/text/img           |
+| 4 | Lifespan     | the `par`; `escape` kills buttons/sprites     |
+| 5 | Signaling    | `emit :next` decouples input (button / key /  |
+|   |              | click) from the page-advance loop — key idiom |
+
+Slice 0 defers the typewriter (show full text) and the
+cancel/skip; a click advances.
 
 ## Slice 0 (MVP) — include vs defer
 
@@ -77,21 +98,39 @@ Defer:
 
 ## Proposed Atmos structure (slice 0)
 
+Mirrors the Céu `par` (minus typewriter/cancel): a draw branch, an
+advance-signal branch, and a page loop driven by `:next`.
+
 ```
 ;; story.atm — global `StoryIntro` (require before menu, like Blank)
 
+val PAGES = [
+    [ img="data/images/story/story0.png", txt="For a long time ..." ],
+    ... 2-3 hardcoded pages ...
+]
+val TITLE = "The Journey Begins"
+val FRAME = "data/images/core/menu/blackboard.png"
+
 task StoryIntro () {
-    val PAGES = [ ... ]               ;; hardcoded { img, text } list
     var i = 0
-    par {
+    par :any {                         ;; :any -> ends when a branch ends
+        ;; draw: blackboard + title + page image + text + ">>>"
         loop on :draw {
-            ;; blackboard bg + title + PAGES@i.img + text + ">>>"
+            pico.output.draw.image(FRAME, ['%', x=0.5, y=0.5])
+            ;; title (top), PAGES@i.img (center), PAGES@i.txt, ">>>"
         }
     } with {
+        ;; advance signal: a click emits :next (decoupled, like Céu)
         loop {
-            await :mouse.button.dn    ;; (or a >>> hit-box)
+            await :mouse.button.dn
+            emit @(:task) :next        ;; -> the page loop below
+        }
+    } with {
+        ;; page loop: walk pages on :next, finish after the last
+        loop {
+            await :next
             if i >= (#PAGES - 1) {
-                break()               ;; last page -> finish
+                break()                ;; last page -> StoryIntro ends
             }
             set i = i + 1
         }
@@ -99,6 +138,7 @@ task StoryIntro () {
 }
 
 ;; menu.atm dispatch: :Story => await Fade(menu, StoryIntro)
+;; (then -> Worldmap, once 260625-story-map.md lands)
 ```
 
 ## Assets
