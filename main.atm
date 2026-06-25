@@ -5,9 +5,22 @@ pico.set.window [ title="Pingus" ]
 set W = 800
 pico.set.dim ['!', w=W, h=600]
 
+;; Blank: shows centered text until Escape is pressed.
+val task Blank (text) {
+    watching :key.dn [key='Escape'] {
+        loop on :draw {
+            pico.set.pencil [ color="white" ]
+            pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
+        }
+    }
+}
+
 val Menu = require "menu"
 loop {
     val id = await Menu()
-    until(id == :Exit)
-    print("clicked:", id)
+    match id {
+        :Exit => break()
+        else  => await Blank(id)
+    }
 }
+pico.quit()
