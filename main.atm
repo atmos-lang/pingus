@@ -21,13 +21,13 @@ val task Blank (text) {
 ;; nxt to completion, then resumes cur. Returns nxt's value.
 ;; NOTE: unverified — needs a prototype run to confirm the
 ;; window-backdrop / world-clip compositing.
-val task Stack (cur, Next) {
+val task Stack (cur, Next, ...) {
     ;; capture cur's last frame (replace realm: safe to re-create)
     pico.layer.screenshot('~', nil, :snap)
     toggle cur(false)
 
     ;; nxt runs live, drawing on `world`
-    pin nxt = spawn Next()
+    pin nxt = spawn Next(...)
 
     ;; reveal: snapshot backdrop on `window`, growing clip on `world`
     var p = 0.0
@@ -47,7 +47,7 @@ val task Stack (cur, Next) {
     }
     pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]   ;; unclip
 
-    val r = await nxt         ;; nxt runs until it returns (back)
+    val r = await(nxt)        ;; nxt runs until it returns (back)
     toggle cur(true)          ;; resume cur
     r
 }
