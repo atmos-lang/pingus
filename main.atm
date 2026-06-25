@@ -16,14 +16,6 @@ task Blank (text) {
     }
 }
 
-;; Fade (push): freeze `cur` immediately (snapshot its frame +
-;; `toggle` off), then grow `Next` over the frozen `:snap` backdrop.
-;; A `pre` handler (spawned before `Next`, so it draws first) draws
-;; `:snap` full and clips `world` to a box growing 0 -> 1; a `post`
-;; handler (after `Next`) resets the clip to full. Only `Next` is
-;; live during the fade. Resume `cur` on return.
-;; (Pop / fade-out animation is a later step — see 260625-fade.md.)
-
 task Fade (cur, Next, ...) {
     pico.layer.screenshot('~', nil, :snap)
     toggle cur(false)
@@ -37,35 +29,37 @@ task Fade (cur, Next, ...) {
     }
 
     spawn {
-        loop on :draw {
-            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
-            pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
-            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
+        watching 500ms {
+            loop on :draw {
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+                pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
+            }
         }
     }
     pin nxt = spawn Next(...)
     spawn {
-        loop on :draw {
-            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+        watching 500ms {
+            loop on :draw {
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+            }
         }
     }
     await(nxt)
+    pico.layer.screenshot('~', nil, :snap)
 
     toggle cur(true)
-    pico.layer.screenshot('~', nil, :snap)
     var q = 1.0
     spawn {
-        loop in 10 {
-            await 50ms
-            set q = q - 0.1
-        }
-    }
-    watching 500ms {
         loop on :draw {
             pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=q, h=q] ]
             pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
             pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
         }
+    }
+    loop in 10 {
+        await 50ms
+        set q = q - 0.1
     }
 }
 
