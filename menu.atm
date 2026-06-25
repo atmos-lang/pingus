@@ -129,14 +129,12 @@ task () {
     pin menu = spawn Menu()
     loop {
         val but = await :Button
-        toggle menu(false)
         match but@1 {
-            :Story     => await Blank("Story")
-            :Editor    => await Blank("Editor")
-            :Levelsets => await Blank("Levelsets")
-            :Options   => await Blank("Options")
+            :Story     => await Fade(Blank, "Story")
+            :Editor    => await Fade(Blank, "Editor")
+            :Levelsets => await Fade(Blank, "Levelsets")
+            :Options   => await Fade(Blank, "Options")
             :Exit      => break()
         }
-        toggle menu(true)
     }
 }

@@ -8,10 +8,49 @@ pico.set.dim ['!', w=W, h=600]
 task Blank (text) {
     watching :key.dn [key='Escape'] {
         loop on :draw {
+            pico.set.pencil [ color="black", style=:fill ]
+            pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
             pico.set.pencil [ color="white" ]
             pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
         }
     }
+}
+
+;; Fade (push, option G): grow `Next` over the live previous screen.
+;; `Next` draws on `world`; a `pre` handler (spawned before `Next`,
+;; so it draws first) clips `world` to a box growing 0 -> 1, and a
+;; `post` handler (after `Next`) resets the clip to full so the env
+;; clear and the backdrop stay unclipped. No screenshot.
+;; (Pop / fade-out is a later step — see 260625-fade.md.)
+
+task Fade (Next, ...) {
+    var p = 0.0
+
+    ;; pre: clip `world` to the growing box (runs before Next's draw)
+    spawn {
+        loop on :draw {
+            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
+        }
+    }
+
+    ;; the next screen draws on `world`, clipped to the box
+    pin nxt = spawn Next(...)
+
+    ;; post: reset the clip to full (runs after Next's draw)
+    spawn {
+        loop on :draw {
+            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+        }
+    }
+
+    ;; grow the box 0 -> 1 over ~1s, then run Next to completion
+    watching 1s {
+        loop on 100ms {
+            set p = p + 0.1
+        }
+    }
+
+    await(nxt)
 }
 
 ;; The menu is the persistent base of the screen stack: it owns the
