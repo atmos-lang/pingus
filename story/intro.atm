@@ -5,7 +5,7 @@ val pico = require "pico"
 ;; `>>>` next image. `LOGO` stands in for the real story page image
 ;; (story0.png) until pages are added.
 
-val FRAME = "data/images/core/menu/blackboard.png"
+val BOARD = "data/images/core/menu/blackboard.png"
 val LOGO  = "data/images/core/misc/logo.png"
 val NEXT  = "data/images/core/misc/next.png"
 
@@ -18,7 +18,7 @@ val TEXT = [
 
 task () {
     loop on :draw {
-        pico.output.draw.image(FRAME, ['%', x=0.5, y=0.5])
+        pico.output.draw.image(BOARD, ['%', x=0.5, y=0.5])
         pico.output.draw.image(LOGO,  ['%', x=0.5, y=0.3])
         pico.set.pencil [ color="white" ]
         loop i, line in TEXT {
