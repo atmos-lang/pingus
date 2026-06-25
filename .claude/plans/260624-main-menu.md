@@ -106,7 +106,7 @@ Layer approach (explored, rejected):
 
 Pending:
 
-- CPS: map each `:Id` to its real screen.
+- CPS / screen dispatch moved to plan `260625-main.md`.
 - TODO: use the original fonts (C++ `pingus_small` for footer,
   `chalk_large` for button labels); currently using pico's
   default font. See plan `260624-font-bitmap.md`.
@@ -182,14 +182,3 @@ with `par`, buttons spawned, clicks awaited.
 |   |              | `emit go_options` pauses the screen          |
 
 The line-count comparison and analysis live in `doc/menu.md`.
-
-## Propose in Atmos
-
-TODO (step 5): map Céu `code/await` + `par` to Atmos
-`task`/`spawn`/`par`, and the layer/redraw loops to
-`pico-lua` draw calls.
-
-## Notes / pending
-
-- No Atmos scaffold yet; decide entry point and the
-  background/button/logo helpers before implementing.
