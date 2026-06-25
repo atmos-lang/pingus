@@ -1,0 +1,17 @@
+require "atmos.env.pico"
+val pico = require "pico"
+
+pico.set.window [ title="Clip Test" ]
+pico.set.dim ['!', w=800, h=600]
+
+loop on :draw {
+    ;; red, full
+    pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+    pico.set.pencil [ color="red", style=:fill ]
+    pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
+
+    ;; blue, full but clipped to a fixed centered half-box
+    pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=0.5, h=0.5] ]
+    pico.set.pencil [ color="blue", style=:fill ]
+    pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
+}
