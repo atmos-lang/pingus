@@ -10,7 +10,14 @@ val FOOTER = [
     help = "..:: Ctrl-g: mouse grab   ::   F10: fps counter   ::   F11: fullscreen   ::   F12: screenshot ::..",
 ]
 
+val BUTTONS = [
+    image = "data/images/core/menu/menuitem.png",
+    hover = "data/images/core/menu/menuitem_highlight.png",
+    sound = "data/sounds/tick.wav",
+]
+
 ;; y is the layer's top edge (px) and speed its scroll (px/s).
+
 val LAYERS = [
     [ png=dir++"layer1.png", y=0,   speed=12  ],
     [ png=dir++"layer2.png", y=150, speed=25  ],
@@ -22,6 +29,7 @@ val LAYERS = [
 }
 
 ;; Layer: scrolls one image horizontally, wrapping at the screen width.
+
 val task Layer (l) {
     var x = 0.0
     par {
@@ -39,17 +47,36 @@ val task Layer (l) {
     }
 }
 
-;; Button: draws a labeled box; terminates on inside-click, returns its id.
+;; Button: image + label; highlights on hover (tick on enter);
+;; terminates on inside-click, returns its id.
+
 val task Button (id, text, x, y) {
-    val rect = ['%', x=x, y=y, w=0.2, h=0.1]
-    watching :mouse.button.dn until pico.vs.pos.rect(it, rect) {
-        loop on :draw {
-            pico.set.pencil [ color="white", style=:stroke ]
-            pico.output.draw.rect(rect)
-            pico.set.pencil [ color="white", style=:fill ]
-            pico.output.draw.text(text, rect)
+    val dim   = pico.get.image("%", BUTTONS.image)
+    val rect  = ['%', x=x, y=y, w=dim.w, h=dim.h]
+
+    var hover = false
+    spawn {
+        loop {
+            await :mouse.motion until pico.vs.pos.rect(it, rect)
+            set hover = true
+            pico.output.sound(BUTTONS.sound)
+            await :mouse.motion until !pico.vs.pos.rect(it, rect)
+            set hover = false
         }
     }
+
+    spawn {
+        loop on :draw {
+            pico.output.draw.image(BUTTONS.image, ['%', x=x, y=y])
+            if hover {
+                pico.output.draw.image(BUTTONS.hover, ['%', x=x, y=y])
+            }
+            pico.set.pencil [ color="white" ]
+            pico.output.draw.text(text, ['%', x=x, y=y, h=0.05])
+        }
+    }
+
+    await :mouse.button.dn until pico.vs.pos.rect(it, rect)
     id
 }
 
