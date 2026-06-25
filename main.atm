@@ -22,14 +22,16 @@ task Fade (cur, Next, ...) {
 
     var p = 0.0
     spawn {
-        loop in 10 {
-            await 50ms
-            set p = p + 0.1
+        ;; smooth: clock-driven, 0 -> 1 over 500ms, clamped
+        watching until p==1 {
+            loop us on :clock {
+                set p = math.min(1, p + ((math.min(us, 40000) / 1000000) * 2))
+            }
         }
     }
 
     spawn {
-        watching 500ms {
+        watching until p==1 {
             loop on :draw {
                 pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
                 pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
@@ -39,7 +41,7 @@ task Fade (cur, Next, ...) {
     }
     pin nxt = spawn Next(...)
     spawn {
-        watching 500ms {
+        watching until p==1 {
             loop on :draw {
                 pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
             }
@@ -57,9 +59,12 @@ task Fade (cur, Next, ...) {
             pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
         }
     }
-    loop in 10 {
-        await 50ms
-        set q = q - 0.1
+    ;; smooth: clock-driven, 1 -> 0 over 500ms, clamped;
+    ;; the loop's `until` ends the pop (and Fade) at q = 0
+    watching until q==0 {
+        loop us on :clock {
+            set q = math.max(0, q - ((math.min(us, 40000) / 1000000) * 2))
+        }
     }
 }
 
