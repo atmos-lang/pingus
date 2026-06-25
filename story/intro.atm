@@ -1,8 +1,10 @@
 val pico = require "pico"
 
-val BOARD = "data/images/core/menu/blackboard.png"
-val NEXT  = "data/images/core/misc/next.png"
-val TITLE = "The Journey Begins"
+val BOARD    = "data/images/core/menu/blackboard.png"
+val NEXT     = "data/images/core/misc/next.png"
+val NEXT_HL  = "data/images/core/misc/next_hover.png"
+val TICK     = "data/sounds/tick.wav"
+val TITLE    = "The Journey Begins"
 
 ;; Pages: each is a story0..N drawing + its pre-wrapped text.
 ;; (The original word-wraps to ~570px via break_line; here the
@@ -41,10 +43,44 @@ val PAGES = [
     ],
 ]
 
+;; Button: the `>>>` next image; highlights on hover (tick on enter);
+;; signals `:Next` on each click. (Copied from menu.atm's Button,
+;; specialized for this one button: next image, no label.)
+
+val task Button (x, y) {
+    val dim   = pico.get.image("%", NEXT)
+    val rect  = ['%', x=x, y=y, w=dim.w, h=dim.h]
+
+    var hover = false
+    par {
+        ;; hover tracking (tick on enter)
+        loop {
+            await :mouse.motion until pico.vs.pos.rect(it, rect)
+            set hover = true
+            pico.output.sound(TICK)
+            await :mouse.motion until !pico.vs.pos.rect(it, rect)
+            set hover = false
+        }
+    } with {
+        ;; draw next image (highlight while hovered)
+        loop on :draw {
+            pico.output.draw.image(NEXT, ['%', x=x, y=y])
+            if hover {
+                pico.output.draw.image(NEXT_HL, ['%', x=x, y=y])
+            }
+        }
+    } with {
+        ;; signal on each inside-click
+        loop on :mouse.button.dn until pico.vs.pos.rect(it, rect) {
+            emit @(:parent) :Next
+        }
+    }
+}
+
 task () {
     var i = 1
     par :any {
-        ;; draw the current page
+        ;; draw the current page (the >>> button is drawn by Button)
         loop on :draw {
             pico.output.draw.image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
             pico.set.pencil [ color="white" ]
@@ -56,13 +92,14 @@ task () {
                     r = ['%', x=0.15, y=y, h=0.025, anchor=:W]
                 }
             }
-            pico.output.draw.image(NEXT, ['%', x=0.85, y=0.85])
         }
     } with {
-        ;; advance on click; last page (or Escape) finishes -> returns
+        ;; >>> button + page advance (click >>> -> :Next); last page
+        ;; or Escape finishes -> returns
+        spawn Button(0.85, 0.85)
         watching :key.dn [key='Escape'] {
             loop {
-                await :mouse.button.dn
+                await :Next
                 if i >= #PAGES {
                     break()
                 }

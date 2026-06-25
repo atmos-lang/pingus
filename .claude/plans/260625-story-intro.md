@@ -16,10 +16,16 @@ This is the simpler of the two — port it first.
   returns. Page-advance (click) still TODO.
 - [x] wired `:Story -> await Fade(menu, Story.Intro)`
 - [x] page-advance: 3 hardcoded pages (story0..2); `par :any`
-  (draw ‖ advance); a click advances, last page or `Escape`
-  finishes -> returns. (Click is anywhere for now; `>>>` hit-test
-  is a refinement.)
-- [ ] parse the `.story` s-expr (defer; hardcoded text for now)
+  (draw ‖ advance). The `>>>` is now a `Button` task (copied from
+  menu.atm's Button, specialized: next image + hover/`tick`, no
+  label) that `emit @(:parent) :Next` on click; the advance loop
+  `await :Next` (i+1; `break` at `#PAGES`); last page or `Escape`
+  finishes -> returns.
+- [ ] TODO: convert `data/stories/tutorial_intro.story` -> a generated
+  `.atm` data file (a `PAGES` table: title, music, pages of
+  `{img, text}`), loaded via `require` — like the font tables
+  (`260624-font-bitmap.md`). Replaces the hardcoded `PAGES` and
+  avoids a runtime s-expr parser. (`text` pre-wrapped at conversion.)
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
 
