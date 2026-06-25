@@ -1,36 +1,73 @@
 val pico = require "pico"
 
 val BOARD = "data/images/core/menu/blackboard.png"
-val LOGO  = "data/images/core/misc/logo.png"
 val NEXT  = "data/images/core/misc/next.png"
-
 val TITLE = "The Journey Begins"
-val TEXT = [
-    "For a long time, the Pingus have lived happily in peace on the",
-    "South Pole along with all the other animals. Everything was in",
-    "balance and it seemed like nothing could disrupt their peace.",
-    "The Pingus were happy and it seemed like this could never end.",
+
+;; Pages: each is a story0..N drawing + its pre-wrapped text.
+;; (The original word-wraps to ~570px via break_line; here the
+;; lines are hand-wrapped. Full `.story` parsing is deferred.)
+
+val PAGES = [
+    [
+        img = "data/images/story/story0.png",
+        text = [
+            "For a long time, the Pingus have lived happily in peace",
+            "on the South Pole along with all the other animals.",
+            "Everything was in balance and it seemed like nothing",
+            "could disrupt their peace. The Pingus were happy and",
+            "it seemed like this could never end.",
+        ],
+    ],
+    [
+        img = "data/images/story/story1.png",
+        text = [
+            "But then one day, things began to change slowly:",
+            "the sky got darker and the earth got warmer. Firstly,",
+            "they thought this was just a normal fluctuation in the",
+            "world's climate, but things seemed to get worse and",
+            "worse with every year.",
+        ],
+    ],
+    [
+        img = "data/images/story/story2.png",
+        text = [
+            "The snow began to melt away in a few areas and food",
+            "became an issue. Other animals tried to leave the",
+            "region to search for colder areas, but the Pingus knew",
+            "that this wouldn't help: they knew that they had to do",
+            "something about it.",
+        ],
+    ],
 ]
 
 task () {
-    watching :key.dn [key='Escape'] {
+    var i = 1
+    par :any {
+        ;; draw the current page
         loop on :draw {
-            ;; board fills the window
             pico.output.draw.image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
             pico.set.pencil [ color="white" ]
-            ;; title (top center)
             pico.output.draw.text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
-            ;; placeholder drawing (upper middle)
-            pico.output.draw.image(LOGO, ['%', x=0.5, y=0.33])
-            ;; narrative text (lower half)
-            loop i, line in TEXT {
+            pico.output.draw.image(PAGES@i.img, ['%', x=0.5, y=0.39])
+            loop j, line in PAGES@i.text {
                 pico.output.draw.text(line, r) where {
-                    y = 0.62 + ((i-1) * 0.045)
-                    r = ['%', x=0.5, y=y, h=0.025]
+                    y = 0.56 + ((j-1) * 0.04)
+                    r = ['%', x=0.15, y=y, h=0.025, anchor=:W]
                 }
             }
-            ;; >>> next (bottom-right, inside the frame)
             pico.output.draw.image(NEXT, ['%', x=0.85, y=0.85])
+        }
+    } with {
+        ;; advance on click; last page (or Escape) finishes -> returns
+        watching :key.dn [key='Escape'] {
+            loop {
+                await :mouse.button.dn
+                if i >= #PAGES {
+                    break()
+                }
+                set i = i + 1
+            }
         }
     }
 }

@@ -8,13 +8,17 @@ This is the simpler of the two — port it first.
 
 ## Status
 
-- [~] assets: copied `blackboard.png` + `next.png`; `logo.png`
-  stands in for the story drawing (story0.png not copied yet)
-- [~] slice 0 STATIC done (`story/intro.atm` `task StoryIntro`):
-  board fills the window + title + logo placeholder + full text +
-  `>>>`; `Escape` returns. Page-advance (click) still TODO.
-- [x] wired `:Story -> await Fade(menu, StoryIntro)`
-- [ ] page-advance via `:next` (click `>>>`) — events step
+- [x] assets: copied `blackboard.png`, `next.png`, `story0.png`
+- [~] slice 0 STATIC done (`story/intro.atm`, a `story` package:
+  `init.atm` exposes `Intro`): board + title + `story0` drawing
+  (at 0.5,0.39, per C++ `page_surface`) + left-aligned pre-wrapped
+  text (per `print_left`+`break_line 570`) + `>>>`; `Escape`
+  returns. Page-advance (click) still TODO.
+- [x] wired `:Story -> await Fade(menu, Story.Intro)`
+- [x] page-advance: 3 hardcoded pages (story0..2); `par :any`
+  (draw ‖ advance); a click advances, last page or `Escape`
+  finishes -> returns. (Click is anywhere for now; `>>>` hit-test
+  is a refinement.)
 - [ ] parse the `.story` s-expr (defer; hardcoded text for now)
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
