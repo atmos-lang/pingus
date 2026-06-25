@@ -12,7 +12,7 @@ val TEXT = [
     "The Pingus were happy and it seemed like this could never end.",
 ]
 
-task StoryIntro () {
+task () {
     watching :key.dn [key='Escape'] {
         loop on :draw {
             ;; board fills the window

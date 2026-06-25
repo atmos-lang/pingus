@@ -65,6 +65,5 @@ task Fade (cur, Next, ...) {
     }
 }
 
-require "story/intro"
 val Menu = require "menu"
 await Menu()

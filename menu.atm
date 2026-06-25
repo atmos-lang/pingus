@@ -125,12 +125,14 @@ val task Menu () {
     await(false)
 }
 
+val Story = require "story"
+
 task () {
     pin menu = spawn Menu()
     loop {
         val but = await :Button
         match but@1 {
-            :Story     => await Fade(menu, StoryIntro)
+            :Story     => await Fade(menu, Story.Intro)
             :Editor    => await Fade(menu, Blank, "Editor")
             :Levelsets => await Fade(menu, Blank, "Levelsets")
             :Options   => await Fade(menu, Blank, "Options")
