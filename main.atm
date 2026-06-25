@@ -5,62 +5,8 @@ pico.set.window [ title="Pingus" ]
 set W = 800
 pico.set.dim ['!', w=W, h=600]
 
-;; Blank: shows centered text until Escape is pressed.
-val task Blank (text) {
-    watching :key.dn [key='Escape'] {
-        loop on :draw {
-            pico.set.pencil [ color="white" ]
-            pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
-        }
-    }
-}
-
-;; Stack: transition from the live screen `cur` (an xtask) to the
-;; task `nxt`. Snapshots cur's frame, freezes cur (+ its subtree),
-;; reveals nxt through a centered box growing 0 -> 1 (~0.5s), runs
-;; nxt to completion, then resumes cur. Returns nxt's value.
-;; NOTE: unverified — needs a prototype run to confirm the
-;; window-backdrop / world-clip compositing.
-val task Stack (cur, Next, ...) {
-    ;; capture cur's last frame (replace realm: safe to re-create)
-    pico.layer.screenshot('~', nil, :snap)
-    toggle cur(false)
-
-    ;; nxt runs live, drawing on `world`
-    pin nxt = spawn Next(...)
-
-    ;; reveal: snapshot backdrop on `window`, growing clip on `world`
-    var p = 0.0
-    watching until p >= 1 {
-        par {
-            loop us on :clock {
-                set p = p + ((us / 1000000) * 2)
-            }
-        } with {
-            loop on :draw {
-                pico.set.layer(:window)
-                pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
-                pico.set.layer(:world)
-                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
-            }
-        }
-    }
-    pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]   ;; unclip
-
-    val r = await(nxt)        ;; nxt runs until it returns (back)
-    toggle cur(true)          ;; resume cur
-    r
-}
-
+;; The menu is the persistent base of the screen stack: it owns the
+;; loop and dispatches each button to its screen. It returns only
+;; when the loop ends (Exit), which terminates the program.
 val Menu = require "menu"
-loop {
-    val id = await Menu()
-    match id {
-        :Story     => await Blank("Story")
-        :Editor    => await Blank("Editor")
-        :Levelsets => await Blank("Levelsets")
-        :Options   => await Blank("Options")
-        :Exit      => break()
-    }
-}
-pico.quit()
+await Menu()
