@@ -94,6 +94,16 @@ Buttons (done — image-based):
 - Caveat: `pico.output.draw.text` asserts `rect.h != 0` — the
   label rect must set `h` (font size), e.g. `h=0.05`.
 
+Layer approach (explored, rejected):
+
+- Tried making the menuitem a pico layer (`draw.layer` + `vs`).
+- Attached child layer auto-composites over `world`, hiding the
+  world-drawn label; detached layer has no stored position so
+  `vs.pos.rect(it, layer)` returns false; re-creating layer keys
+  per loop aborts (needs `push/pop`).
+- Conclusion: `draw.image` + a computed `rect` is simpler and
+  robust here; reverted to it.
+
 Pending:
 
 - CPS: map each `:Id` to its real screen.
