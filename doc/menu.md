@@ -23,7 +23,7 @@ Legend: ✓ done · ✗ absent · ~ partial / different.
 | Click -> dispatch              |  ✓  |  ✓  |   ✓   |
 | Real target screens            |  ✓  |  ✓  |   ✗   |
 | Pause / resume prev screen     |  ✓  |  ✓  |   ✓   |
-| Fade-over transition           |  ✓  |  ✗  |   ✗   |
+| Fade-over transition           |  ✓  |  ✗  |   ✓   |
 | "letsgo" start sound           |  ✓  |  ✗  |   ✗   |
 | Resolution scaling (bg)        |  ✓  |  ✗  |   ✗   |
 | Window-resize re-layout        |  ✓  |  ~  |   ~   |
@@ -42,7 +42,8 @@ Notes:
   (top-only update); Céu also signals `emit go_options`; Atmos via
   `toggle menu(false/true)`.
 - Fade-over: C++ `ScreenManager::fade_over` (centered box grows
-  0->full); the Céu/Atmos ports don't reproduce the visual fade.
+  0->full); Atmos `Fade` reproduces it (snapshot backdrop on
+  `window` + growing `world` clip); Céu does not.
 - Window-resize: Céu/Atmos lay out with relative anchors (`%`), so
   most re-layout is automatic; Atmos background top-edges are still
   px, so it is only partial.
