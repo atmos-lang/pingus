@@ -4,14 +4,22 @@ val pico = require "pico"
 pico.set.window [ title="Clip Test" ]
 pico.set.dim ['!', w=800, h=600]
 
+;; Mirror Fade: red fills `world` (behind); blue fills `window` (front)
+;; but clipped to a centered half-box. window draws over world, so the
+;; result should be red everywhere with a centered blue box.
+
 loop on :draw {
-    ;; red, full
+    ;; world: red, full (behind)
+    pico.set.layer(:world)
     pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
     pico.set.pencil [ color="red", style=:fill ]
     pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
 
-    ;; blue, full but clipped to a fixed centered half-box
+    ;; window: blue, full but clipped to a centered half-box (front)
+    val old = pico.set.layer(:window)
     pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=0.5, h=0.5] ]
     pico.set.pencil [ color="blue", style=:fill ]
     pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
+    pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+    pico.set.layer(old)
 }
