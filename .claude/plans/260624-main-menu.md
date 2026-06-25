@@ -166,6 +166,47 @@ with `par`, buttons spawned, clicks awaited.
 | 5 | Signaling    | button `emit ok_clicked` -> menu;            |
 |   |              | `emit go_options` pauses the screen          |
 
+## Line-count comparison
+
+Same feature (parallax background + logo + footer + buttons)
+across the three ports.
+`code` = non-blank, non-comment lines.
+
+| Version | Files                                     | Total | Code |
+|---------|-------------------------------------------|------:|-----:|
+| C++     | `pingus_menu.{cpp,hpp}`, `menu_button.{cpp,hpp}` | 573 | 396 |
+| Céu     | `menu/menu.ceu`, `menu/button.ceu`        |  243 |  212 |
+| Atmos   | `menu.atm` (+ `main.atm` harness)         |  140 |  113 |
+
+Relative to C++ (code lines):
+    Céu  ~= 54%,
+    Atmos ~= 29% (about a quarter of C++).
+
+Caveats for fairness:
+
+- C++ splits the screen and the button across 4 files (incl.
+  headers) and carries GPL headers (excluded from `code`).
+- Céu `menu.ceu` includes a ~36-line `#if 0 ... #endif` block of
+  dead reference C++; real Céu code is closer to ~176, so Atmos
+  is ~64% of Céu.
+- Atmos `main.atm` (~11 code lines) is the window/loop harness,
+  with no C++/Céu equivalent counted here.
+
+Discussion:
+
+- The structured-reactive ports (Céu, Atmos) are far tighter
+  than C++; Atmos is the most compact.
+- `par` / `watching` / `await` collapse what C++ implements by
+  hand: the `LayerManager`, the callback dispatch
+  (`on_click` / `draw` / `update`), and the pointer
+  enter/leave state machine.
+- Atmos shaves further off Céu via table-driven data
+  (`LAYERS` / `FOOTER` / `BUTTONS`), `where` scoping, and
+  `loop on :draw` / `loop _,x in t` iteration.
+- Note the counts exclude the original's resolution-scaling
+  branch (`create_background` non-default size), which the port
+  does not implement.
+
 ## Propose in Atmos
 
 TODO (step 5): map Céu `code/await` + `par` to Atmos
