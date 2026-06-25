@@ -144,3 +144,18 @@ Atmos shaves further off Céu via table-driven data
   all live in `menu.atm`.
 - The port targets a fixed 800x600 window, so it omits the
   original's resolution-scaling path.
+
+# TODO
+
+- `Blank` moved from `menu.atm` to `main.atm`. Recalculate the
+  `menu.atm` / `main.atm` useful counts, the headline ratios
+  (`95/102`, 43% / 59%, ~52%), and the prose that still places
+  `Blank` in `menu.atm` (Line-counts intro + Caveats).
+- Transition effect (Atmos-natural, harder in C++): pass `menu`
+  into `Fade` and keep it *live* during the reveal, so both
+  screens run and animate at once — no snapshot backdrop needed.
+  C++ `fade_over` is draw-only over a *frozen* screen.
+  Caveat: pico's current-layer is global and `clip` is per-layer,
+  so the two live screens must sit on different layers (incoming
+  on its own clipped layer over the live menu). Worth documenting
+  as a showcase difference once the live `Fade` exists.

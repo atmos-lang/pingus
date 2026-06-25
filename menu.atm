@@ -125,15 +125,6 @@ val task Menu () {
     await(false)
 }
 
-val task Blank (text) {
-    watching :key.dn [key='Escape'] {
-        loop on :draw {
-            pico.set.pencil [ color="white" ]
-            pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
-        }
-    }
-}
-
 task () {
     pin menu = spawn Menu()
     loop {

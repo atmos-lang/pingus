@@ -5,6 +5,15 @@ pico.set.window [ title="Pingus" ]
 set W = 800
 pico.set.dim ['!', w=W, h=600]
 
+task Blank (text) {
+    watching :key.dn [key='Escape'] {
+        loop on :draw {
+            pico.set.pencil [ color="white" ]
+            pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
+        }
+    }
+}
+
 ;; The menu is the persistent base of the screen stack: it owns the
 ;; loop and dispatches each button to its screen. It returns only
 ;; when the loop ends (Exit), which terminates the program.
