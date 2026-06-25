@@ -19,8 +19,11 @@ val Menu = require "menu"
 loop {
     val id = await Menu()
     match id {
-        :Exit => break()
-        else  => await Blank(id)
+        :Story     => await Blank("Story")
+        :Editor    => await Blank("Editor")
+        :Levelsets => await Blank("Levelsets")
+        :Options   => await Blank("Options")
+        :Exit      => break()
     }
 }
 pico.quit()
