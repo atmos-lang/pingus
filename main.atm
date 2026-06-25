@@ -27,9 +27,6 @@ task Blank (text) {
 task Fade (cur, Next, ...) {
     pico.layer.screenshot('~', nil, :snap)
     toggle cur(false)
-    defer {
-        toggle cur(true)
-    }
 
     var p = 0.0
     spawn {
@@ -53,10 +50,24 @@ task Fade (cur, Next, ...) {
         }
     }
     await(nxt)
+
+    toggle cur(true)
+    pico.layer.screenshot('~', nil, :snap)
+    var q = 1.0
+    spawn {
+        loop in 10 {
+            await 50ms
+            set q = q - 0.1
+        }
+    }
+    watching 500ms {
+        loop on :draw {
+            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=q, h=q] ]
+            pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
+            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+        }
+    }
 }
 
-;; The menu is the persistent base of the screen stack: it owns the
-;; loop and dispatches each button to its screen. It returns only
-;; when the loop ends (Exit), which terminates the program.
 val Menu = require "menu"
 await Menu()
