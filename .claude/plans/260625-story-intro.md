@@ -8,14 +8,16 @@ This is the simpler of the two — port it first.
 
 ## Status
 
-- [ ] copy assets (blackboard frame + story page images)
-- [ ] slice 0: paged chalkboard (title + image + text, click to
-  advance), returns after the last page
-- [ ] parse the `.story` s-expr (defer; hardcode pages first)
-- [ ] original chalk font (defer; pico default for now —
-  `260624-font-bitmap.md`)
+- [~] assets: copied `blackboard.png` + `next.png`; `logo.png`
+  stands in for the story drawing (story0.png not copied yet)
+- [~] slice 0 STATIC done (`story/intro.atm` `task StoryIntro`):
+  board fills the window + title + logo placeholder + full text +
+  `>>>`; `Escape` returns. Page-advance (click) still TODO.
+- [x] wired `:Story -> await Fade(menu, StoryIntro)`
+- [ ] page-advance via `:next` (click `>>>`) — events step
+- [ ] parse the `.story` s-expr (defer; hardcoded text for now)
+- [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
-- [ ] wire `:Story -> StoryIntro` (via `Fade`)
 
 ## Source format
 

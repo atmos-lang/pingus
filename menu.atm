@@ -130,7 +130,7 @@ task () {
     loop {
         val but = await :Button
         match but@1 {
-            :Story     => await Fade(menu, Blank, "Story")
+            :Story     => await Fade(menu, StoryIntro)
             :Editor    => await Fade(menu, Blank, "Editor")
             :Levelsets => await Fade(menu, Blank, "Levelsets")
             :Options   => await Fade(menu, Blank, "Options")
