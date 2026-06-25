@@ -82,9 +82,20 @@ Footer (done):
 - buttons pool scoped in a `do { ... await :any buttons }` block
   (the do is the task's last expr → returns the clicked id).
 
+Buttons (done — image-based):
+
+- `menuitem.png` background + label; hit-box from
+  `pico.get.image("%", img)`.
+- Hover: `par` tracks `mouse.motion until [!]vs.pos.rect`,
+  toggles `hover`, plays `tick` on enter, overlays
+  `menuitem_highlight.png` while hovered.
+- Assets copied: `menuitem.png`, `menuitem_highlight.png`,
+  `sounds/tick.wav`.
+- Caveat: `pico.output.draw.text` asserts `rect.h != 0` — the
+  label rect must set `h` (font size), e.g. `h=0.05`.
+
 Pending:
 
-- Button hover-highlight (+ `tick` sound).
 - CPS: map each `:Id` to its real screen.
 
 ## Behavior
