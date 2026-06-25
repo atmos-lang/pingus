@@ -1,41 +1,81 @@
 # Main Menu: C++ vs Céu vs Atmos
 
-Line-count comparison of the same feature (parallax background,
-logo, footer + help bar, and five hover-highlighting buttons)
-across the three ports.
+Comparison of the same main-menu screen (parallax background,
+logo, footer + help bar, five hover-highlighting buttons, and the
+click-to-screen navigation) across the three ports.
 
-## Methodology
+## Functionality
 
-"Useful code" excludes, uniformly across all three:
+What each port actually implements.
+Legend: ✓ done · ✗ absent · ~ partial / different.
 
-- `.hpp` headers (declarations only),
-- comments, blank lines,
-- pure-brace / punctuation-only lines (`{`, `}`, `);`, ...),
-- C++ boilerplate (`#include` / `using` / `namespace`),
-- Céu's dead `#if 0 ... #endif` reference block.
+| Functionality                  | C++ | Céu | Atmos |
+|--------------------------------|:---:|:---:|:-----:|
+| Parallax cloud background      |  ✓  |  ✓  |   ✓   |
+| Logo                           |  ✓  |  ✓  |   ✓   |
+| Footer copyright text          |  ✓  |  ✓  |   ✓   |
+| Help bar (bottom)              |  ✓  |  ✓  |   ✓   |
+| Five buttons                   |  ✓  |  ✓  |   ✓   |
+| Hover highlight                |  ✓  |  ✓  |   ✓   |
+| Hover "tick" sound             |  ✓  |  ✓  |   ✓   |
+| Original bitmap fonts          |  ✓  |  ✓  |   ✗   |
+| Background music (pingus-1.it) |  ✓  |  ✓  |   ✗   |
+| Click -> dispatch              |  ✓  |  ✓  |   ✓   |
+| Real target screens            |  ✓  |  ✓  |   ✗   |
+| Pause / resume prev screen     |  ✓  |  ✓  |   ✓   |
+| Fade-over transition           |  ✓  |  ✗  |   ✗   |
+| "letsgo" start sound           |  ✓  |  ✗  |   ✗   |
+| Resolution scaling (bg)        |  ✓  |  ✗  |   ✗   |
+| Window-resize re-layout        |  ✓  |  ~  |   ~   |
+| Story-seen / tutorial intro    |  ✓  |  ✗  |   ✗   |
+| Credits screen                 |  ✓  |  ✗  |   ✗   |
+| Per-button hint / desc         |  ~  |  ✗  |   ✗   |
 
+Notes:
+
+- Original bitmap fonts: `chalk_large` (labels) + `pingus_small`
+  (footer); Atmos still uses pico's default font
+  (see `260624-font-bitmap.md`).
+- Real target screens: Atmos opens `Blank` placeholders instead of
+  worldmap / editor / level menu / options.
+- Pause / resume: C++ and Céu via the `ScreenManager` stack
+  (top-only update); Céu also signals `emit go_options`; Atmos via
+  `toggle menu(false/true)`.
+- Fade-over: C++ `ScreenManager::fade_over` (centered box grows
+  0->full); the Céu/Atmos ports don't reproduce the visual fade.
+- Window-resize: Céu/Atmos lay out with relative anchors (`%`), so
+  most re-layout is automatic; Atmos background top-edges are still
+  px, so it is only partial.
+- Per-button hint: C++ stores `desc` and has `set_hint`, but the
+  on-screen display is gated by `if (0)` (dead).
+
+## Line counts
+
+"Useful code" excludes, uniformly across all three: `.hpp`
+headers, comments, blank lines, pure-brace / punctuation-only
+lines (`{`, `}`, `);`, ...), C++ boilerplate (`#include` / `using`
+/ `namespace`), and Céu's dead `#if 0 ... #endif` block.
 What remains is executable statements.
 
-## Headline
-
-| Version | Files (implementation)                      | Useful |
-|---------|---------------------------------------------|-------:|
+| Version | Files (implementation)                       | Useful |
+|---------|----------------------------------------------|-------:|
 | C++     | `pingus_menu.cpp` 156 + `menu_button.cpp` 65 |    221 |
-| Céu     | `menu.ceu` 125 + `button.ceu` 37            |    162 |
-| Atmos   | `menu.atm` 91 (+ `main.atm` 7 harness)      |  91/98 |
+| Céu     | `menu.ceu` 125 + `button.ceu` 37             |    162 |
+| Atmos   | `menu.atm` 95 (+ `main.atm` 7 harness)       | 95/102 |
 
 For reference, `cloc` on the two C++ `.cpp` files reports 312
 code lines; the drop to 221 removes brace/boilerplate-only lines.
 
-The +10 in `menu.atm` (vs the earlier 81) is the in-menu screen
-dispatch (`match id -> await Blank`) plus the `Blank` placeholder,
-which moved out of the `main.atm` harness; the C++ `on_click`
-switch is the rough counterpart.
+`menu.atm` also carries the in-file orchestration that the C++
+keeps in the engine: the click dispatch (`match but@1 -> await
+Blank`), the `toggle` pause/resume, and the `Blank` placeholder.
+The C++ `on_click` switch is the rough dispatch counterpart; its
+stack pause lives in `ScreenManager` (not counted in the 221).
 
-Ratios (useful, `menu.atm` vs C++ impl):
+Ratios (useful, `menu.atm` vs impl):
 
-- Atmos ~= 41% of C++,
-- Atmos ~= 56% of Céu.
+- Atmos ~= 43% of C++,
+- Atmos ~= 59% of Céu.
 
 ## Like-for-like adjustment
 
@@ -50,25 +90,26 @@ implement:
 | `show_credits` / `set_hint` / `on_escape_press`  |     ~5 |
 
 ~37 lines of C++ have no port counterpart, so the comparable C++
-is ~184 and Atmos `menu.atm` (91) is ~49% of it.
+is ~184 and Atmos `menu.atm` (95) is ~52% of it.
 
 ## Where the savings are (by concern)
 
 | Concern          | C++ | Atmos | What collapses                      |
 |------------------|----:|------:|-------------------------------------|
-| Button component |  65 |   ~18 | hover state-machine + per-state     |
-|                  |     |       | draw + hit-test -> one `par`        |
-|                  |     |       | (draw ‖ motion-track) + `vs`        |
-| Background       | ~18 |   ~19 | roughly even; but C++ also needs    |
+| Button component |  65 |   ~24 | hover state-machine + per-state     |
+|                  |     |       | draw + hit-test -> one 3-branch     |
+|                  |     |       | `par` (hover ‖ draw ‖ click) + `vs` |
+| Background       | ~18 |   ~15 | roughly even; but C++ also needs    |
 |                  |     |       | `update`/`draw` plumbing elsewhere  |
-| Dispatch         | ~26 |  ~0\* | `draw_background`+`update` callbacks |
+| Draw/update      | ~26 |  ~0\* | `draw_background`+`update` callbacks |
 |                  |     |       | -> `loop on :draw` inline per task  |
-| Click handling   | ~15 |   ~12 | `on_click` switch + virtual wiring  |
-|                  |     |       | -> `par :any` + in-menu `match id`  |
+| Click / nav      | ~15 |   ~14 | `on_click` switch + virtual wiring  |
+|                  |     |       | -> `emit :Button` + `match but@1`   |
 |                  |     |       | -> `await Blank`                    |
+| Pause / stack    | eng |    ~6 | `ScreenManager` push/pop/freeze     |
+|                  |     |       | -> `toggle menu(false/true)`        |
 | Lifecycle        | ~40 |    ~5 | ctor builds / dtor / manager owns   |
-|                  |     |       | -> `spawn`/pool, auto-abort on      |
-|                  |     |       | scope end                           |
+|                  |     |       | -> `spawn` + scope-based abort      |
 
 \* folded into each task's `loop on :draw`.
 
@@ -79,12 +120,14 @@ button component plus the callback / dispatch / lifecycle
 plumbing.
 
 C++ spends ~65 lines on a `MenuButton` class (state, draw per
-state, hit-test, setters) that Atmos expresses in ~18 via `par`
-+ `watching` / `await`.
+state, hit-test, setters) that Atmos expresses in ~24 via a
+3-branch `par` (hover ‖ draw ‖ click) + `vs` hit-tests + an
+`emit @2 :Button [id]` signal.
 
-The `on_click` switch, the `update` / `draw` overrides, and the
-ctor/dtor ownership all disappear into `loop on :draw`,
-`par :any`, and scope-based task abortion.
+The `on_click` switch, the `update` / `draw` overrides, the
+ctor/dtor ownership, and the `ScreenManager` push/pause all
+disappear into `loop on :draw`, `emit`/`await`/`match`,
+`toggle`, and scope-based task abortion.
 
 Atmos shaves further off Céu via table-driven data
 (`LAYERS` / `FOOTER` / `BUTTONS`), `where` scoping, and
@@ -97,7 +140,7 @@ Atmos shaves further off Céu via table-driven data
 - Céu `menu.ceu` embeds a ~36-line `#if 0` block of dead
   reference C++ (excluded above).
 - `main.atm` is now just the window setup + `await Menu()`; the
-  screen dispatch moved into `menu.atm` (`Blank` placeholders
-  stand in for the real screens).
+  menu task, dispatch, pause (`toggle`) and `Blank` placeholders
+  all live in `menu.atm`.
 - The port targets a fixed 800x600 window, so it omits the
   original's resolution-scaling path.
