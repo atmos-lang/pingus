@@ -50,6 +50,34 @@ Mirrors the menu: a container task `par`-composing a pool of
 clickable child tasks that signal a tag; the container `await`s the
 signal and dispatches.
 
+## Sprite / Component (decision, from the C++ survey)
+
+C++ splits visuals from interaction:
+
+- `Sprite` = **pure visual**: `render` + **animation** (`update`,
+  `set_frame`, `set_play_loop`, `restart`) + `hotspot`. No input.
+- `Component` = **interaction**: `is_at` hit-test + `draw`/`update`
+  + callbacks (`on_*_button_click`, `on_pointer_enter/leave/move`,
+  keys); the parent `GroupComponent` detects hover (tracks one
+  `mouse_over_comp` -> **mutually exclusive**) and dispatches.
+
+Our port has **no `Component`** — each task draws (`loop on :draw`)
+and `await`s its own events filtered by `pico.vs.pos.rect`; the
+`Button` task IS the Component-equivalent (already used by menu +
+intro `>>>`). So `Dot` follows that same pattern.
+
+Decisions:
+
+- **Introduce a `Sprite` task here** (draw + frame-animation +
+  hotspot) — the worldmap **walking pingu** forces it (frames /
+  left-right). Static images (board, dots, leave button) can stay
+  plain `draw.image`; only animated ones need `Sprite`.
+- Keep input in the tasks (no `Component` base).
+- **Hover caveat**: our per-task hover has NO mutual exclusion
+  (unlike C++'s parent-tracked `mouse_over_comp`). Fine for
+  non-overlapping menu/intro buttons; **worldmap dots may overlap**
+  -> may need a shared "hovered id" / z-order check.
+
 ## Control-flow patterns (the study's point)
 
 | # | pattern        | in the worldmap                              |
