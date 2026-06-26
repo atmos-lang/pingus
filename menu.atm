@@ -46,39 +46,6 @@ val task Layer (l) {
     }
 }
 
-;; Button: image + label; highlights on hover (tick on enter);
-;; stays alive, signals the parent (:Button [id]) on each click.
-
-val task Button (id, text, x, y) {
-    val dim  = pico.get.image("%", BUTTONS.image)
-    val rect = ['%', x=x, y=y, w=dim.w, h=dim.h]
-    val pos  = ['%', x=x, y=y]
-    val lbl  = ['%', x=x, y=y, h=0.05]
-
-    ;; input + visuals (z-order: base < highlight < label)
-    spawn Object(rect)
-    spawn Image(BUTTONS.image, pos)
-    pin hover = spawn Image(BUTTONS.hover, pos)
-    spawn Text(text, lbl)
-    toggle hover(false)                  ;; hidden until the pointer enters
-
-    par {
-        ;; show highlight + tick while the pointer is over
-        loop {
-            await :o.over.on
-            pico.output.sound(BUTTONS.sound)
-            toggle hover(true)
-            await :o.over.off
-            toggle hover(false)
-        }
-    } with {
-        ;; signal the menu on each inside press
-        loop on :o.click.dn {
-            emit @2 :Button [id=id]
-        }
-    }
-}
-
 ;; Menu: parallax + logo + text + 5 buttons: emits :Button
 
 val task Menu () {
@@ -103,11 +70,12 @@ val task Menu () {
     }
 
     ;; buttons
-    spawn Button(:Story,     "Story",     0.35, 0.45)
-    spawn Button(:Editor,    "Editor",    0.65, 0.45)
-    spawn Button(:Levelsets, "Levelsets", 0.35, 0.6)
-    spawn Button(:Options,   "Options",   0.65, 0.6)
-    spawn Button(:Exit,      "Exit",      0.5,  0.75)
+    val dim = pico.get.image("%", BUTTONS.image)
+    spawn Button(:Story,     1, BUTTONS, "Story")     <- ['%', x=0.35, y=0.45, w=dim.w, h=dim.h]
+    spawn Button(:Editor,    1, BUTTONS, "Editor")    <- ['%', x=0.65, y=0.45, w=dim.w, h=dim.h]
+    spawn Button(:Levelsets, 1, BUTTONS, "Levelsets") <- ['%', x=0.35, y=0.6,  w=dim.w, h=dim.h]
+    spawn Button(:Options,   1, BUTTONS, "Options")   <- ['%', x=0.65, y=0.6,  w=dim.w, h=dim.h]
+    spawn Button(:Exit,      1, BUTTONS, "Exit")      <- ['%', x=0.5,  y=0.75, w=dim.w, h=dim.h]
     await(false)
 }
 

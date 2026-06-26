@@ -1,10 +1,13 @@
 val pico = require "pico"
 
 val BOARD    = "data/images/core/menu/blackboard.png"
-val NEXT     = "data/images/core/misc/next.png"
-val NEXT_HL  = "data/images/core/misc/next_hover.png"
 val TICK     = "data/sounds/tick.wav"
 val TITLE    = "The Journey Begins"
+val BUTTON   = [
+    image = "data/images/core/misc/next.png",
+    hover = "data/images/core/misc/next_hover.png",
+    sound = TICK,
+]
 
 ;; Pages: each is a story0..N drawing + its pre-wrapped text.
 ;; (The original word-wraps to ~570px via break_line; here the
@@ -43,46 +46,15 @@ val PAGES = [
     ],
 ]
 
-;; Button: the `>>>` next image; highlights on hover (tick on enter);
-;; signals `:Next` on each click. Same shape as menu.atm's Button
-;; (Object + Image + toggled hover), specialized: next image, no label.
-
-val task Button (x, y) {
-    val dim  = pico.get.image("%", NEXT)
-    val rect = ['%', x=x, y=y, w=dim.w, h=dim.h]
-    val pos  = ['%', x=x, y=y]
-
-    ;; input + visuals (z-order: base < highlight)
-    spawn Object(rect)
-    spawn Image(NEXT, pos)
-    pin hover = spawn Image(NEXT_HL, pos)
-    toggle hover(false)                  ;; hidden until the pointer enters
-
-    par {
-        ;; show highlight + tick while the pointer is over
-        loop {
-            await :o.over.on
-            pico.output.sound(TICK)
-            toggle hover(true)
-            await :o.over.off
-            toggle hover(false)
-        }
-    } with {
-        ;; signal the page loop on each inside press
-        loop on :o.click.dn {
-            emit @(:parent) :Next
-        }
-    }
-}
-
 task () {
     ;; static backdrop + title + >>> button (whole intro)
     spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
     spawn Text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
-    spawn Button(0.85, 0.85)
+    val dim = pico.get.image("%", BUTTON.image)
+    spawn Button(:Next, 0, BUTTON, nil) <- ['%', x=0.85, y=0.85, w=dim.w, h=dim.h]
 
     ;; pages: each spawns its image + a pool of text lines; advances
-    ;; on :Next. Per-iteration spawns die on the next page. Escape or
+    ;; on :Button. Per-iteration spawns die on the next page. Escape or
     ;; the last page finishes -> returns.
     watching :key.dn [key='Escape'] {
         loop _, page in PAGES {
@@ -94,7 +66,7 @@ task () {
                     r = ['%', x=0.15, y=y, h=0.025, anchor=:W]
                 }
             }
-            await :Next
+            await :Button
         }
     }
 }

@@ -83,6 +83,34 @@ task Object (rect, target) {
     }
 }
 
+;; Button: Object + base/highlight Image (+ optional `text` label);
+;; tick on enter; emits :Button [id=id] on each inside press. `target`
+;; is relative to the caller (0 = the caller, 1 = its parent, ...).
+;; `style` = [image, hover, sound].
+task Button (id, target, style, text, rect) {
+    spawn Object(rect)
+    spawn Image(style.image, rect)
+    pin hl = spawn Image(style.hover, rect)
+    toggle hl(false)                     ;; hidden until the pointer enters
+    pin _ = if text => spawn Text(text, ['%', x=rect.x, y=rect.y, h=0.05])
+
+    par {
+        ;; show highlight + tick while the pointer is over
+        loop {
+            await :o.over.on
+            pico.output.sound(style.sound)
+            toggle hl(true)
+            await :o.over.off
+            toggle hl(false)
+        }
+    } with {
+        ;; signal on each inside press (target+1: caller is @1 from here)
+        loop on :o.click.dn {
+            emit @(target + 1) :Button [id=id]
+        }
+    }
+}
+
 task Fade (cur, Next, ...) {
     pico.layer.screenshot('~', nil, :snap)
     toggle cur(false)
