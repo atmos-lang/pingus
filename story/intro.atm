@@ -15,7 +15,7 @@ val BUTTON = [
 val PAGES = [
     [
         img = "data/images/story/story0.png",
-        text = [
+        lines = [
             "For a long time, the Pingus have lived happily in peace",
             "on the South Pole along with all the other animals.",
             "Everything was in balance and it seemed like nothing",
@@ -25,7 +25,7 @@ val PAGES = [
     ],
     [
         img = "data/images/story/story1.png",
-        text = [
+        lines = [
             "But then one day, things began to change slowly:",
             "the sky got darker and the earth got warmer. Firstly,",
             "they thought this was just a normal fluctuation in the",
@@ -35,7 +35,7 @@ val PAGES = [
     ],
     [
         img = "data/images/story/story2.png",
-        text = [
+        lines = [
             "The snow began to melt away in a few areas and food",
             "became an issue. Other animals tried to leave the",
             "region to search for colder areas, but the Pingus knew",
@@ -52,20 +52,35 @@ task () {
     val dim = pico.get.image("%", BUTTON.image)
     spawn Button(:Next, 0, BUTTON, nil, ['%', x=0.85, y=0.85, w=dim.w, h=dim.h])
 
-    ;; pages: each spawns its image + a pool of text lines; advances
-    ;; on :Button. Per-iteration spawns die on the next page. Escape or
-    ;; the last page finishes -> returns.
+    ;; pages: type each line letter-by-letter — finished lines stay in
+    ;; a pool, the line being typed is a per-char Text re-spawned every
+    ;; 50ms. An advance (>>> click or Space) mid-reveal snaps to the
+    ;; full page (next one pages on); Escape or the last page returns.
     watching :key.dn [key='Escape'] {
         loop _, page in PAGES {
             spawn Image(page.img, ['%', x=0.5, y=0.39])
-            pin texts = tasks(#page.text)
-            loop j, line in page.text {
-                spawn @texts Text(line, r) where {
-                    y = 0.56 + ((j-1) * 0.04)
-                    r = ['%', x=0.15, y=y, h=0.025, anchor=:W]
+            pin ls = tasks(#page.lines)
+            watching (:Button || :key.dn [key='Space']) {
+                loop l, line in page.lines {
+                    val r = [
+                        '%', x=0.15, y=0.56+((l-1)*0.04), h=0.025, anchor=:W
+                    ]
+                    loop c in #line {
+                        spawn Text(string.sub(line, 1, c), r)
+                        await 50ms
+                    }
+                    spawn @ls Text(line, r)
                 }
             }
-            await :Button
+            ;; snapped early -> fill the #P-#ls lines past those already pooled
+            val n = #ls
+            loop l in #page.lines-n {
+                val i = n+l
+                spawn @ls Text(page.lines@i) <- [
+                    '%', x=0.15, y=0.56 + ((i-1) * 0.04), h=0.025, anchor=:W
+                ]
+            }
+            await (:Button || :key.dn [key='Space'])
         }
     }
 }
