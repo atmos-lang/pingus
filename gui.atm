@@ -92,7 +92,10 @@ task Button (id, target, style, text, rect) {
     spawn Image(style.image, rect)
     pin hl = spawn Image(style.hover, rect)
     toggle hl(false)                     ;; hidden until the pointer enters
-    pin _ = if text => spawn Text(text, ['%', x=rect.x, y=rect.y, h=0.05])
+    pin t = tasks(1)
+    if text {
+        spawn @t Text(text, ['%', x=rect.x, y=rect.y, h=0.05])
+    }
 
     par {
         ;; show highlight + tick while the pointer is over
