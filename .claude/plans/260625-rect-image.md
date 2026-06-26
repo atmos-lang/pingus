@@ -69,12 +69,12 @@ extraction or `match` is needed.
   `Rect` emits to `target||:parent`; `Button` re-emits `:Button`
   upward (`@2`) as today.
 
-## Image (r, path)
+## Image (path, r)
 
 Dumb per-frame draw: `loop on :draw { draw.image(path, r) }`.
 Always draws while alive; gating is the caller's job.
 
-- Arg order `(r, path)` mirrors `Rect (r, ...)`.
+- Arg order `(path, r)` mirrors `pico.output.draw.image(path, r)`.
 - `r` carries `w,h`; `draw.image` scales to it, but since `Button`
   builds `r` from `get.image` dims the scale is identity (no pixel
   change vs. today).
@@ -90,7 +90,7 @@ Would collapse to a composition:
 - `watching (await :rect.click until r.left) { par { ... } }` ends
   on a left-press inside, returns `id` (replaces `await
   :mouse.button.dn until inside`).
-- par branches: `spawn Rect(r)`; `spawn Image(r, base)`;
+- par branches: `spawn Rect(r)`; `spawn Image(base, r)`;
   `loop on :draw` highlight-while-`r.over` + label; tick on enter
   (`await :rect.over until r.over`).
 - text keeps its own `h=0.05` rect (not `r`).
