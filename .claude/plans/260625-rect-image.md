@@ -12,8 +12,9 @@ Both live as **global tasks** in a new `gui.atm`.
 - [x] specify feature (this plan)
 - [x] compare C++ and Ceu versions + identify patterns
 - [x] verify APIs (pointer query, emit target)
-- [ ] propose in Atmos (Rect/Image/Button drafted in chat)
-- [ ] implement in `gui.atm` + `menu.atm`
+- [x] propose in Atmos (Rect/Image drafted in chat)
+- [ ] implement `Rect` + `Image` in `gui.atm`
+- [~] Button refactor: out of scope (future)
 
 ## Motivation
 
@@ -31,18 +32,23 @@ transitions.
 
 ### State (written onto `r`)
 
-| field      | kind  | value                                          |
-|------------|-------|------------------------------------------------|
-| `x,y,w,h`  | data  | the rect geometry (passed in)                  |
-| `over`     | bool  | `true` while pointer is over the rect          |
-| `click`    | enum  | `:dn` / `:up` while over; `nil` when not over  |
+| field                       | kind | value                                |
+|-----------------------------|------|--------------------------------------|
+| `x,y,w,h`                   | data | the rect geometry (passed in)        |
+| `over`                      | bool | `true` while pointer is over         |
+| `left` / `right` / `middle` | bool | mirrored mouse buttons; only         |
+|                             |      | meaningful while `over` is `true`    |
 
-`r.click == nil` iff `r.over == false`.
+No `:dn`/`:up` enum: `Rect` mirrors the raw button booleans the
+event already carries (`pico.c` `L_set_mouse`), so no leaf
+extraction or `match` is needed.
 
 ### Events (payload `[rect=r]`)
 
 - `:rect.over` on each enter/leave; consumer reads `it.rect.over`.
-- `:rect.click.dn` / `:rect.click.up` on press/release while over.
+- `:rect.click` on any button change while over; consumer reads
+  `it.rect.left` etc. (a press inside = `await :rect.click until
+  r.left`).
 
 ### Decisions
 
@@ -53,11 +59,12 @@ transitions.
   Query `pico.get.mouse('%')` so `over`/`click` are valid at `t=0`;
   `click` may start `:dn` if the button is already held over `r`.
 - **Two par branches.**
-  `:mouse.motion` recomputes `over` (emit on change);
-  `:mouse.button` drives `click` gated by `r.over`.
-- **Drag guards.**
-  Enter forces `click=:up` (held-from-outside is not a click-in);
-  a leave mid-press nils `click`, so the `:up` is skipped.
+  `:mouse.motion` handles `over` only (emit on change);
+  `:mouse.button until r.over` mirrors `left/right/middle` while over.
+- **Buttons valid only while over.**
+  Motion does not touch the button fields, so they hold their last
+  in-rect value; the consumer gates on `r.over` (a menu `Button`
+  reads `r.over` for its highlight anyway).
 - **emit scope.**
   `Rect` emits to `target||:parent`; `Button` re-emits `:Button`
   upward (`@2`) as today.
@@ -72,13 +79,17 @@ Always draws while alive; gating is the caller's job.
   builds `r` from `get.image` dims the scale is identity (no pixel
   change vs. today).
 
-## Button, refactored
+## Button (out of scope)
 
-Collapses to a composition:
+NOT part of this plan — `menu.atm` stays as-is.
+Kept here only as the intended future consumer / validation sketch.
+
+Would collapse to a composition:
 
 - build `r` from `x,y` + image dims (signature unchanged).
-- `watching :rect.click.dn { par { ... } }` ends on inside-click,
-  returns `id` (replaces `await :mouse.button.dn until inside`).
+- `watching (await :rect.click until r.left) { par { ... } }` ends
+  on a left-press inside, returns `id` (replaces `await
+  :mouse.button.dn until inside`).
 - par branches: `spawn Rect(r)`; `spawn Image(r, base)`;
   `loop on :draw` highlight-while-`r.over` + label; tick on enter
   (`await :rect.over until r.over`).
@@ -109,14 +120,15 @@ atmos manual + `HISTORY.md`.
 
 ## Open questions
 
-- [x] `click` down-only vs. down+up: emit both `.dn`/`.up`, push the
-      policy to the consumer.
+- [x] click encoding: dropped `:dn`/`:up` + sub-tags; mirror raw
+      `left/right/middle` booleans instead (no `match`, no leaf).
 - [x] `Rect` invisible: yes; all drawing is `Image`/label.
 - [x] pointer query + emit-target: verified (see API check).
-- [ ] confirm `||` operator and `match it { :mouse.button.dn => ... }`
-      sub-tag pattern in real Atmos.
+- [x] spawn/enter-while-held: buttons are valid only while over and
+      mirror live state; no stale-`:dn` edge anymore.
 - [x] global-task form: bare `task Rect (...)` (named, no `val`/`set`
       = global, since `T = task ()` is written `task T ()`).
-- [ ] spawn-while-held edge: `click` may stay `:dn` past release.
+- [ ] confirm `||` operator and `loop on :ev until cond` in real
+      Atmos.
 
 Plan: 260625-rect-image.md
