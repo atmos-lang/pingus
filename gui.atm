@@ -1,12 +1,23 @@
 ;; gui.atm: reusable GUI primitives (global tasks).
 ;;   Rect  - invisible input hit-region: over + mirrored buttons.
 ;;   Image - dumb per-frame image draw into a rect.
+;;   Text  - dumb per-frame text draw into a rect.
 
 ;; Image: dumb per-frame draw of `path` into rect `r`. Always draws
 ;; while alive; gating is the caller's job.
 task Image (path, r) {
     loop on :draw {
         pico.output.draw.image(path, r)
+    }
+}
+
+;; Text: dumb per-frame draw of `text` into rect `r`, in `color`
+;; (white by default). Re-sets the pencil each frame.
+task Text (text, r, color) {
+    val c = color || "white"
+    loop on :draw {
+        pico.set.pencil [ color=c ]
+        pico.output.draw.text(text, r)
     }
 }
 

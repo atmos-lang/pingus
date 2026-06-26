@@ -95,6 +95,7 @@ val task Menu () {
     spawn Image(LOGO, ['%', x=0.5, y=0.2])
 
     ;; footer text
+    spawn Text(FOOTER.help, ['%', x=0.5, y=0.978, h=0.025])
     spawn {
         loop on :draw {
             pico.set.pencil [ color="white" ]
@@ -106,8 +107,6 @@ val task Menu () {
             }
             pico.set.pencil [ color="black", style=:fill ]
             pico.output.draw.rect(['%', x=0.5, y=0.978, w=1, h=0.044])
-            pico.set.pencil [ color="white" ]
-            pico.output.draw.text(FOOTER.help, ['%', x=0.5, y=0.978, h=0.025])
         }
     }
 

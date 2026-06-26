@@ -74,6 +74,9 @@ extraction or `match` is needed.
 - `Image`: logo (`menu.atm`) + board backdrop (`intro.atm`).
   `PAGES@i.img` stays inline for now (dynamic; revisited in the
   intro restructure step).
+- `Text`: TITLE (`intro.atm`), footer help (`menu.atm`), Blank
+  (`main.atm`). Looped/dynamic texts (footer infos, page lines)
+  left inline.
 
 ## Image (path, r)
 

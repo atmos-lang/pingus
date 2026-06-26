@@ -8,12 +8,14 @@ pico.set.dim ['!', w=W, h=600]
 
 task Blank (text) {
     watching :key.dn [key='Escape'] {
-        loop on :draw {
-            pico.set.pencil [ color="black", style=:fill ]
-            pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
-            pico.set.pencil [ color="white" ]
-            pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
+        spawn {
+            loop on :draw {
+                pico.set.pencil [ color="black", style=:fill ]
+                pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
+            }
         }
+        spawn Text(text, ['%', x=0.5, y=0.5, h=0.1])
+        await(false)
     }
 }
 
