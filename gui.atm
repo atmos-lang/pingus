@@ -38,8 +38,8 @@ task Text (text, r, color) {
 ;;   pub.over                  - bool, pointer is over the rect
 ;;   pub.left/right/middle     - mirrored mouse buttons (valid while over)
 ;;
-;; Events:  :o.over   on enter/leave
-;;          :o.click  on a button change while over
+;; Events:  :o.over.on / :o.over.off   on enter / leave
+;;          :o.click.dn / :o.click.up  on press / release while over
 task Object (rect, target) {
     val tgt = target || :parent
 
@@ -56,21 +56,29 @@ task Object (rect, target) {
     }
 
     par {
-        ;; motion: track `over`, emit on change
-        loop on :mouse.motion {
-            val o = pico.vs.pos.rect(it, rect)
+        ;; motion: track `over`, emit on/off on change
+        val tags = [
+            @(true)  = :o.over.on,
+            @(false) = :o.over.off,
+        ]
+        loop e on :mouse.motion {
+            val o = pico.vs.pos.rect(e, rect)
             if o != pub.over {
                 set pub.over = o
-                emit @(tgt) :o.over [obj=pub]
+                emit @(tgt) :o.over.on [tag=tags[o], obj=pub]
             }
         }
     } with {
-        ;; button: mirror the buttons while over
-        loop on :mouse.button until pub.over {
-            set pub.left   = it.left
-            set pub.right  = it.right
-            set pub.middle = it.middle
-            emit @(tgt) :o.click [obj=pub]
+        ;; button: mirror buttons + emit dn/up while over
+        val tags = [
+            @(:mouse.button.dn) => :o.click.dn,
+            @(:mouse.button.up) => :o.click.up,
+        ]
+        loop e on :mouse.button until pub.over {
+            set pub.left   = e.left
+            set pub.right  = e.right
+            set pub.middle = e.middle
+            emit @(tgt) :o.click.dn [tag=tags[e.tag], obj=pub]
         }
     }
 }

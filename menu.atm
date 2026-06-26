@@ -66,15 +66,15 @@ val task Button (id, text, x, y) {
     par {
         ;; show highlight + tick while the pointer is over
         loop {
-            await :o.over until it.obj.over
+            await :o.over.on
             pico.output.sound(BUTTONS.sound)
             toggle hover(true)
-            await :o.over until (!it.obj.over)
+            await :o.over.off
             toggle hover(false)
         }
     } with {
-        ;; signal the menu on each inside left-press
-        loop on :o.click until it.obj.left {
+        ;; signal the menu on each inside press
+        loop on :o.click.dn {
             emit @2 :Button [id]
         }
     }

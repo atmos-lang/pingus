@@ -46,10 +46,14 @@ extraction or `match` is needed.
 
 ### Events (payload `[obj=pub]`)
 
-- `:o.over` on each enter/leave; consumer reads `it.obj.over`.
-- `:o.click` on any button change while over; consumer reads
-  `it.obj.left` etc. (a press inside = `await :o.click until
-  it.obj.left`).
+- `:o.over.on` / `:o.over.off` on enter / leave.
+- `:o.click.dn` / `:o.click.up` on press / release while over.
+
+Sub-tags let a consumer `await` the exact transition with no `until`
+payload filter (e.g. `await :o.over.on`, `loop on :o.click.dn`).
+`pub` still carries geometry + button state for richer reads.
+`:o.click.*` is discriminated by `match it { :mouse.button.dn => …;
+:mouse.button.up => … }` on the raw event.
 
 ### Decisions
 
@@ -104,8 +108,8 @@ Always draws while alive; gating is the caller's job.
   (`base < highlight < label`); the highlight is `toggle`d off and
   flipped on/off by `:o.over` transitions (freeze semantics, same as
   `Fade`), so its z-slot is preserved — no rebuild.
-- click: `loop on :o.click until it.obj.left { emit @2 :Button [id] }`
-  (keeps press only; `:o.click` fires on press + release).
+- hover: `await :o.over.on` / `:o.over.off` (no filter); click:
+  `loop on :o.click.dn { emit @2 :Button [id] }`.
 - signature `(id, text, x, y)` unchanged → call-sites untouched.
 
 Pattern: `do { ...spawns; await(x) }` replaces `watching x { ...;
