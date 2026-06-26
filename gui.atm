@@ -1,5 +1,5 @@
 ;; gui.atm: reusable GUI primitives (global tasks).
-;;   Rect  - invisible input hit-region: over + mirrored buttons.
+;;   Object - invisible input hit-region: over + mirrored buttons.
 ;;   Image - dumb per-frame image draw into a rect.
 ;;   Text  - dumb per-frame text draw into a rect.
 
@@ -21,41 +21,47 @@ task Text (text, r, color) {
     }
 }
 
-;; Rect: invisible hit-region over `r`. Tracks pointer/button state
-;; on `r` and emits transitions carrying [rect=r] to `target` (a
-;; task ref) or, if omitted, the direct parent.
+;; Object: invisible hit-region over `rect`. Exposes its rect + live
+;; pointer/button state via `pub`, and emits transitions carrying
+;; [obj=pub] to `target` (a task ref) or, if omitted, the parent.
 ;;
-;;   r.over                  - bool, pointer is over the rect
-;;   r.left/right/middle     - mirrored mouse buttons (valid while over)
+;;   pub.rect                  - the geometry (read-only)
+;;   pub.over                  - bool, pointer is over the rect
+;;   pub.left/right/middle     - mirrored mouse buttons (valid while over)
 ;;
-;; Events:  :rect.over   on enter/leave
-;;          :rect.click  on a button change while over
-task Rect (r, target) {
+;; Events:  :o.over   on enter/leave
+;;          :o.click  on a button change while over
+task Object (rect, target) {
     val tgt = target || :parent
 
-    ;; init: derive state from the current pointer
+    ;; pub = the object: its rect + state, derived from the pointer
     val m = pico.get.mouse('%')
-    set r.over   = pico.vs.pos.rect(m, r)
-    set r.left   = r.over && m.left
-    set r.right  = r.over && m.right
-    set r.middle = r.over && m.middle
+    set pub = [
+        rect   = rect,
+        over   = over,
+        left   = over && m.left,
+        right  = over && m.right,
+        middle = over && m.middle,
+    ] where {
+        over = pico.vs.pos.rect(m, rect)
+    }
 
     par {
         ;; motion: track `over`, emit on change
         loop on :mouse.motion {
-            val o = pico.vs.pos.rect(it, r)
-            if o != r.over {
-                set r.over = o
-                emit @(tgt) :rect.over [rect=r]
+            val o = pico.vs.pos.rect(it, rect)
+            if o != pub.over {
+                set pub.over = o
+                emit @(tgt) :o.over [obj=pub]
             }
         }
     } with {
         ;; button: mirror the buttons while over
-        loop on :mouse.button until r.over {
-            set r.left   = it.left
-            set r.right  = it.right
-            set r.middle = it.middle
-            emit @(tgt) :rect.click [rect=r]
+        loop on :mouse.button until pub.over {
+            set pub.left   = it.left
+            set pub.right  = it.right
+            set pub.middle = it.middle
+            emit @(tgt) :o.click [obj=pub]
         }
     }
 }

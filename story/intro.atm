@@ -78,33 +78,25 @@ val task Button (x, y) {
 }
 
 task () {
-    var i = 1
+    ;; static backdrop + title + >>> button (whole intro)
     spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
     spawn Text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
-    par :any {
-        ;; draw the current page (the >>> button is drawn by Button)
-        loop on :draw {
-            pico.set.pencil [ color="white" ]
-            pico.output.draw.image(PAGES@i.img, ['%', x=0.5, y=0.39])
-            loop j, line in PAGES@i.text {
-                pico.output.draw.text(line, r) where {
+    spawn Button(0.85, 0.85)
+
+    ;; pages: each spawns its image + a pool of text lines; advances
+    ;; on :Next. Per-iteration spawns die on the next page. Escape or
+    ;; the last page finishes -> returns.
+    watching :key.dn [key='Escape'] {
+        loop _, page in PAGES {
+            spawn Image(page.img, ['%', x=0.5, y=0.39])
+            pin texts = tasks(#page.text)
+            loop j, line in page.text {
+                spawn @texts Text(line, r) where {
                     y = 0.56 + ((j-1) * 0.04)
                     r = ['%', x=0.15, y=y, h=0.025, anchor=:W]
                 }
             }
-        }
-    } with {
-        ;; >>> button + page advance (click >>> -> :Next); last page
-        ;; or Escape finishes -> returns
-        spawn Button(0.85, 0.85)
-        watching :key.dn [key='Escape'] {
-            loop {
-                await :Next
-                if i >= #PAGES {
-                    break()
-                }
-                set i = i + 1
-            }
+            await :Next
         }
     }
 }
