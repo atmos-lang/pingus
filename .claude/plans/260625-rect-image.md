@@ -13,7 +13,7 @@ Both live as **global tasks** in a new `gui.atm`.
 - [x] compare C++ and Ceu versions + identify patterns
 - [x] verify APIs (pointer query, emit target)
 - [x] propose in Atmos (Rect/Image drafted in chat)
-- [ ] implement `Rect` + `Image` in `gui.atm`
+- [x] implement `Rect` + `Image` in `gui.atm`
 - [~] Button refactor: out of scope (future)
 
 ## Motivation

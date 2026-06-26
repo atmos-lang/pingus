@@ -1,0 +1,52 @@
+;; gui.atm: reusable GUI primitives (global tasks).
+;;   Rect  - invisible input hit-region: over + mirrored buttons.
+;;   Image - dumb per-frame image draw into a rect.
+
+val pico = require "pico"
+
+;; Rect: invisible hit-region over `r`. Tracks pointer/button state
+;; on `r` and emits transitions carrying [rect=r] to `target` (a
+;; task ref) or, if omitted, the direct parent.
+;;
+;;   r.over                  - bool, pointer is over the rect
+;;   r.left/right/middle     - mirrored mouse buttons (valid while over)
+;;
+;; Events:  :rect.over   on enter/leave
+;;          :rect.click  on a button change while over
+task Rect (r, target) {
+    val tgt = target || :parent
+
+    ;; init: derive state from the current pointer
+    val m = pico.get.mouse('%')
+    set r.over   = pico.vs.pos.rect(m, r)
+    set r.left   = if r.over { m.left } else { nil }
+    set r.right  = if r.over { m.right } else { nil }
+    set r.middle = if r.over { m.middle } else { nil }
+
+    par {
+        ;; motion: track `over`, emit on change
+        loop on :mouse.motion {
+            val o = pico.vs.pos.rect(it, r)
+            if o != r.over {
+                set r.over = o
+                emit @(tgt) (:rect.over [rect=r])
+            }
+        }
+    } with {
+        ;; button: mirror the buttons while over
+        loop on :mouse.button until r.over {
+            set r.left   = it.left
+            set r.right  = it.right
+            set r.middle = it.middle
+            emit @(tgt) (:rect.click [rect=r])
+        }
+    }
+}
+
+;; Image: dumb per-frame draw of `path` into rect `r`. Always draws
+;; while alive; gating is the caller's job.
+task Image (r, path) {
+    loop on :draw {
+        pico.output.draw.image(path, r)
+    }
+}
