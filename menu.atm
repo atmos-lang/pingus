@@ -71,11 +71,11 @@ val task Menu () {
 
     ;; buttons
     val dim = pico.get.image("%", BUTTONS.image)
-    spawn Button(:Story,     1, BUTTONS, "Story")     <- ['%', x=0.35, y=0.45, w=dim.w, h=dim.h]
-    spawn Button(:Editor,    1, BUTTONS, "Editor")    <- ['%', x=0.65, y=0.45, w=dim.w, h=dim.h]
-    spawn Button(:Levelsets, 1, BUTTONS, "Levelsets") <- ['%', x=0.35, y=0.6,  w=dim.w, h=dim.h]
-    spawn Button(:Options,   1, BUTTONS, "Options")   <- ['%', x=0.65, y=0.6,  w=dim.w, h=dim.h]
-    spawn Button(:Exit,      1, BUTTONS, "Exit")      <- ['%', x=0.5,  y=0.75, w=dim.w, h=dim.h]
+    spawn Button(:Story,   1, BUTTONS, "Story")     <- ['%', x=0.35, y=0.45, w=dim.w, h=dim.h]
+    spawn Button(:Editor,  1, BUTTONS, "Editor")    <- ['%', x=0.65, y=0.45, w=dim.w, h=dim.h]
+    spawn Button(:Levels,  1, BUTTONS, "Levelsets") <- ['%', x=0.35, y=0.6,  w=dim.w, h=dim.h]
+    spawn Button(:Options, 1, BUTTONS, "Options")   <- ['%', x=0.65, y=0.6,  w=dim.w, h=dim.h]
+    spawn Button(:Exit,    1, BUTTONS, "Exit")      <- ['%', x=0.5,  y=0.75, w=dim.w, h=dim.h]
     await(false)
 }
 
@@ -86,11 +86,11 @@ task () {
     loop {
         val but = await :Button
         match but.id {
-            :Story     => await Fade(menu, Story.Intro)
-            :Editor    => await Fade(menu, Blank, "Editor")
-            :Levelsets => await Fade(menu, Blank, "Levelsets")
-            :Options   => await Fade(menu, Blank, "Options")
-            :Exit      => break()
+            :Story   => await Fade(menu, Story.Intro)
+            :Editor  => await Fade(menu, Blank, "Editor")
+            :Levels  => await Fade(menu, Blank, "Levelsets")
+            :Options => await Fade(menu, Blank, "Options")
+            :Exit    => break()
         }
     }
 }

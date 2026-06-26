@@ -1,12 +1,11 @@
 val pico = require "pico"
 
-val BOARD    = "data/images/core/menu/blackboard.png"
-val TICK     = "data/sounds/tick.wav"
-val TITLE    = "The Journey Begins"
-val BUTTON   = [
+val BOARD  = "data/images/core/menu/blackboard.png"
+val TITLE  = "The Journey Begins"
+val BUTTON = [
     image = "data/images/core/misc/next.png",
     hover = "data/images/core/misc/next_hover.png",
-    sound = TICK,
+    sound = "data/sounds/tick.wav",
 ]
 
 ;; Pages: each is a story0..N drawing + its pre-wrapped text.
@@ -51,7 +50,7 @@ task () {
     spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
     spawn Text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
     val dim = pico.get.image("%", BUTTON.image)
-    spawn Button(:Next, 0, BUTTON, nil) <- ['%', x=0.85, y=0.85, w=dim.w, h=dim.h]
+    spawn Button(:Next, 0, BUTTON, nil, ['%', x=0.85, y=0.85, w=dim.w, h=dim.h])
 
     ;; pages: each spawns its image + a pool of text lines; advances
     ;; on :Button. Per-iteration spawns die on the next page. Escape or
