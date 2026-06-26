@@ -92,12 +92,7 @@ val task Menu () {
     }
 
     ;; pingus logo
-    spawn {
-        val png = "data/images/core/misc/logo.png"
-        loop on :draw {
-            pico.output.draw.image(png, ['%', x=0.5, y=0.2])
-        }
-    }
+    spawn Image(LOGO, ['%', x=0.5, y=0.2])
 
     ;; footer text
     spawn {
