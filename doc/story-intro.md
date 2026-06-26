@@ -1,15 +1,16 @@
 # Story Intro: C++ vs Céu vs Atmos
 
 Comparison of the story-intro screen — a blackboard backdrop with
-a title, a sequence of pages (each a drawing + a block of text),
-and a `>>>` next button that advances them — across the three
-ports. Entered from the menu's `Story` button through a `Fade`.
+a title, a sequence of pages (each a drawing + a block of text that
+types out letter-by-letter), and a `>>>` next button that advances
+them — across the three ports. Entered from the menu's `Story`
+button through a `Fade`.
 
 Like `menu.md`, this adds a per-concern **code comparison**. The
 Atmos port reuses the same `gui.atm` primitives as the menu —
 notably the shared `Button` and `Image` / `Text` — so the screen
-file (`story/intro.atm`) is almost entirely page data + a paging
-loop.
+file (`story/intro.atm`) is mostly page data plus one paging /
+reveal loop.
 
 ## Line counts
 
@@ -19,41 +20,45 @@ Same "useful" definition as `menu.md`.
 |-------|------------------------------|-------:|
 | C++   | `story_screen.cpp`           |    162 |
 | Céu   | `story.ceu`                  |   ~115 |
-| Atmos | `story/intro.atm`            |     52 |
+| Atmos | `story/intro.atm`            |     61 |
 
 The C++ count omits the shared `SurfaceButton` (~62 useful) and
 the `.story` loader; the Atmos count omits the shared `gui.atm`
 (reused from the menu) — its `Button` / `Image` / `Text` / `Fade`
-are not re-spent here. Of `story/intro.atm`'s 52 useful lines,
-most are the `PAGES` data table; the paging logic itself is ~12.
+are not re-spent here. Of `story/intro.atm`'s 61 useful lines,
+roughly half are the `PAGES` data table; the rest is the paging +
+per-char reveal loop.
 
 ## Control-flow patterns
 
-| # | pattern   | where                                            |
-|---|-----------|--------------------------------------------------|
-| 3 | Dispatch  | `await :Button` advances the page loop           |
-| 4 | Lifespan  | per-page `Image` + `texts` pool die per iteration |
-| 5 | Signaling | `>>>` `Button` emits `:Button` -> the page loop  |
-|   | Watching  | `watching :key.dn [Escape]` aborts the screen    |
+| # | pattern   | where                                              |
+|---|-----------|----------------------------------------------------|
+| 3 | Dispatch  | `await (:Button \|\| :key.dn[Space])` pages on     |
+| 4 | Lifespan  | per-page `Image` + `ls` pool, and each per-char    |
+|   |           | `Text`, freed at their own iteration boundary      |
+| 5 | Signaling | `>>>` `Button` emits `:Button`; Space via `:key.dn` |
+|   | Watching  | outer `:key.dn[Escape]` aborts the screen; inner   |
+|   |           | `(advance)` snaps the reveal to the full page      |
 
 ## Takeaway
 
 The story screen is where the shared-primitive payoff shows: with
 `Button`, `Image`, `Text`, and `Fade` already defined for the
-menu, the whole screen is a `PAGES` table plus a ~12-line paging
-loop. C++/Céu re-derive a screen class, a specialized button, a
-draw override, and explicit page-state management.
+menu, the screen is a `PAGES` table plus one paging/reveal loop.
+C++/Céu re-derive a screen class, a specialized button, a draw
+override, explicit page-state management, and a timed-substring
+text reveal.
 
-The structural wins mirror the menu's: per-page setup/teardown is
-loop-scope (`spawn` + `await` + iteration end) instead of manual
-`next_text` bookkeeping, and Escape-to-leave is a `watching`
-wrapper instead of an `on_escape_press` override.
+The structural wins mirror the menu's: per-page (and per-character)
+setup/teardown is loop-scope (`spawn` + `await` + iteration end)
+instead of manual `next_text` bookkeeping, and Escape-to-leave is a
+`watching` wrapper instead of an `on_escape_press` override.
 
 ## Caveats
 
-- Behavioral gap: no `.story` parsing, width word-wrap, or timed
-  char-by-char reveal — text is hand-wrapped in `PAGES` and shown
-  whole.
+- Behavioral gap: no `.story` parsing and no width word-wrap — the
+  text is hand-wrapped in `PAGES`. (The timed letter-by-letter
+  reveal *is* implemented.)
 - No tutorial-end Credits hand-off.
 - Uses pico's default font, not the original `chalk_*` bitmaps.
 
@@ -66,41 +71,46 @@ Legend: ✓ done · ✗ absent · ~ partial / different.
 | Blackboard backdrop + title      |  ✓  |  ✓  |   ✓   |
 | Paged story (image + text)       |  ✓  |  ✓  |   ✓   |
 | `>>>` next button (hover)        |  ✓  |  ✓  |   ✓   |
-| Advance on click                 |  ✓  |  ✓  |   ✓   |
+| Advance — click or key           |  ✓  |  ✓  |   ✓   |
+| Char-by-char text reveal         |  ✓  |  ✓  |   ✓   |
+| Snap reveal on advance           |  ✓  |  ✓  |   ✓   |
 | Escape to leave                  |  ✓  |  ✓  |   ✓   |
 | Finish on last page              |  ✓  |  ✓  |   ✓   |
 | Fade-in from the menu            |  ~  |  ✓  |   ✓   |
 | `.story` file parsing            |  ✓  |  ✓  |   ✗   |
 | Word-wrap to width               |  ✓  |  ✓  |   ✗   |
-| Char-by-char text reveal         |  ✓  |  ✓  |   ✗   |
 | Original bitmap fonts            |  ✓  |  ✓  |   ✗   |
 | Credits hand-off (tutorial end)  |  ✓  |  ✗  |   ✗   |
 
 Notes:
 
-- Atmos hand-wraps the page text in `PAGES` and shows it whole;
-  `.story` parsing, width word-wrap, and the timed reveal are
-  deferred (see the comment in `story/intro.atm`).
-- The `>>>` button is the shared `gui.atm` `Button`, configured
-  with no label (`text = nil`).
+- Advance: C++/Céu accept the `>>>` click or the fast-forward key;
+  Atmos accepts the click or `Space` (`:Button || :key.dn[Space]`).
+- Text reveal: types ~20 chars/s; an advance mid-reveal snaps to the
+  full page (the next one pages on) — as in C++/Céu. The lines are
+  hand-wrapped in `PAGES`; `.story` parsing and width word-wrap are
+  still deferred.
+- The `>>>` button is the shared `gui.atm` `Button`, label-less
+  (`text = nil`).
 
 ## Building blocks (Atmos)
 
 `story/intro.atm` reuses the `gui.atm` primitives introduced in
 `menu.md`:
 
-| primitive  | use here                                  |
-|------------|-------------------------------------------|
-| `Image`    | backdrop, each page drawing               |
-| `Text`     | title, each wrapped text line             |
-| `Button`   | the `>>>` next button (label-less)        |
-| `Fade`     | entry transition from the menu            |
+| primitive  | use here                                          |
+|------------|---------------------------------------------------|
+| `Image`    | backdrop, each page drawing                       |
+| `Text`     | title; the line being typed; each finished line   |
+| `Button`   | the `>>>` next button (label-less)                |
+| `Fade`     | entry transition from the menu                    |
 
-The screen-specific part is the `PAGES` table and one paging loop.
+The screen-specific part is the `PAGES` table and one paging /
+reveal loop.
 
 ## Code comparison
 
-### Paging — current page + advance
+### Paging — page loop + advance
 
 C++ (`story_screen.cpp`) — a page stack, popped to advance:
 
@@ -124,18 +134,22 @@ loop i in [0 <- {pages.size()}[ do
 end
 ```
 
-Atmos (`story/intro.atm`) — a loop that awaits the button:
+Atmos (`story/intro.atm`) — a loop that reveals then awaits advance:
 
 ```
 loop _, page in PAGES {
     spawn Image(page.img, ['%', x=0.5, y=0.39])
-    ... spawn the text lines ...
-    await :Button
+    pin ls = tasks(#page.lines)
+    watching (:Button || :key.dn [key='Space']) {
+        ... type the lines, pooling each finished one ...
+    }
+    ... fill any not-yet-typed lines (on a snap) ...
+    await (:Button || :key.dn [key='Space'])
 }
 ```
 
 The C++ page state (`current_page`, `page_surface`, flags) is
-replaced by the loop variable `page`; advancing is just the next
+replaced by the loop variable `page`; advancing is the next
 iteration.
 
 ### The `>>>` next button
@@ -164,11 +178,11 @@ Atmos (`story/intro.atm`) — the shared `Button`, no label:
 spawn Button(:Next, 0, BUTTON, nil, ['%', x=0.85, y=0.85, ...])
 ```
 
-Both C++ and Céu specialize a button class for this screen; Atmos
-reuses the menu's `Button` task, differing only in the arguments
-(`text = nil`, a different `style`).
+C++ and Céu specialize a button class for this screen; Atmos reuses
+the menu's `Button`, differing only in the args (`text = nil`, the
+`BUTTON` style record).
 
-### Page content — backdrop, title, body
+### Page content — backdrop, title, image
 
 C++ (`story_screen.cpp`) — direct `draw` calls each frame:
 
@@ -179,64 +193,86 @@ gc.draw(page_surface, image_pos);
 gc.print_left(chalk_normal, text_pos, display_text);
 ```
 
-Atmos (`story/intro.atm`) — one task per visual element:
+Atmos (`story/intro.atm`) — one task per static element:
 
 ```
 spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])   ;; backdrop
 spawn Text(TITLE, ['%', x=0.5, y=0.13, h=0.06])     ;; title
 spawn Image(page.img, ['%', x=0.5, y=0.39])         ;; page image
-pin texts = tasks(#page.text)                       ;; text lines
-loop j, line in page.text {
-    spawn @texts Text(line, r) where { ... }
-}
 ```
 
 The single `draw` override becomes one persistent `Image` / `Text`
-task each; the body lines are a pooled set of `Text` tasks.
+task each; the body text is the reveal loop below.
 
-### Word-wrap / `.story` parsing
+### Text reveal
 
-C++ (`story_screen.cpp`) — a timed UTF-8 reveal of pre-wrapped
-text:
+C++ (`story_screen.cpp`) — a timed UTF-8 substring of pre-wrapped
+text, redrawn each frame:
 
 ```cpp
 len = (size_type)(20.0f * time_passed);
 display_text = utf8::substr(current_page.text, 0, min(text_len, len));
 ```
 
-Atmos — no parser or reveal: the text is hand-wrapped in `PAGES`
-and drawn whole. This is the main behavioral gap (see the
-`story/intro.atm` header comment); the original loads `.story`
-files and `break_line`s to ~570px.
+Atmos (`story/intro.atm`) — each line typed by re-spawning a one-
+char-longer `Text` every 50ms; the finished line is pooled:
 
-### Lifespan / cleanup between pages
+```
+loop l, line in page.lines {
+    val r = ['%', x=0.15, y=0.56+((l-1)*0.04), h=0.025, anchor=:W]
+    loop c in #line {
+        spawn Text(string.sub(line, 1, c), r)   ;; growing prefix
+        await 50ms
+    }
+    spawn @ls Text(line, r)                      ;; freeze finished line
+}
+```
+
+C++ recomputes a substring against a clock in its `update`/`draw`;
+Atmos lets the loop *be* the clock — each character is one
+`Text` that lives 50ms (the loop iteration is its scope). Both
+assume pre-wrapped text; Atmos hand-wraps in `PAGES` (no `.story`
+loader, no width `break_line`).
+
+### Snap on advance
+
+C++ — a `page_displayed_completly` flag: the first advance completes
+the reveal, the next pages on.
+
+Atmos — the reveal runs inside `watching (advance)`; an advance
+aborts it, then the not-yet-typed lines are filled in full (the
+pool's count `#ls` marks how far typing got), and a second advance
+pages on:
+
+```
+watching (:Button || :key.dn [key='Space']) {
+    ... per-line reveal ...
+}
+val n = #ls                           ;; lines already shown
+loop l in #page.lines-n {             ;; fill the rest
+    val i = n+l
+    spawn @ls Text(page.lines@i) <- [...]
+}
+```
+
+### Lifespan / cleanup
 
 C++ — implicit: reassigning `page_surface` drops the old sprite;
 flags are reset by hand in `next_text`.
 
-Céu — loop-scope: the per-page `RRect` / `Sprite` spawns are
-killed at the iteration boundary.
+Céu — loop-scope: the per-page `RRect` / `Sprite` spawns are killed
+at the iteration boundary.
 
-Atmos — the same loop-scope idea, made explicit by `await`:
-
-```
-loop _, page in PAGES {
-    spawn Image(page.img, ...)        ;; this page's image
-    pin texts = tasks(#page.text)     ;; this page's lines
-    ... spawn @texts Text(...) ...
-    await :Button                     ;; hold the page open
-}                                     ;; iteration ends -> page freed
-```
-
-The page's `Image` and the `texts` pool live exactly as long as
-the iteration; the next `:Button` ends it (freeing them) and the
-loop respawns for the next page. The backdrop / title / button,
-spawned once *before* the loop, persist across all pages.
+Atmos — loop-scope at two levels. The page's `Image` and `ls` pool
+live for the page iteration; each per-char `Text` lives for one
+char iteration (re-spawned a char longer each 50ms). The backdrop /
+title / button, spawned once *before* the loop, persist across all
+pages.
 
 ### Entry / exit
 
-C++ (`story_screen.cpp`) — Escape pops, last page pops or hands
-to Credits:
+C++ (`story_screen.cpp`) — Escape pops, last page pops or hands to
+Credits:
 
 ```cpp
 void StoryScreen::on_escape_press() { pop_screen(); }
@@ -250,7 +286,7 @@ finishes:
 watching :key.dn [key='Escape'] {
     loop _, page in PAGES {
         ...
-        await :Button
+        await (:Button || :key.dn [key='Space'])
     }
 }                          ;; Escape or last page -> task returns
 ```
