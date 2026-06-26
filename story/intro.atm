@@ -44,34 +44,32 @@ val PAGES = [
 ]
 
 ;; Button: the `>>>` next image; highlights on hover (tick on enter);
-;; signals `:Next` on each click. (Copied from menu.atm's Button,
-;; specialized for this one button: next image, no label.)
+;; signals `:Next` on each click. Same shape as menu.atm's Button
+;; (Object + Image + toggled hover), specialized: next image, no label.
 
 val task Button (x, y) {
-    val dim   = pico.get.image("%", NEXT)
-    val rect  = ['%', x=x, y=y, w=dim.w, h=dim.h]
+    val dim  = pico.get.image("%", NEXT)
+    val rect = ['%', x=x, y=y, w=dim.w, h=dim.h]
+    val pos  = ['%', x=x, y=y]
 
-    var hover = false
+    ;; input + visuals (z-order: base < highlight)
+    spawn Object(rect)
+    spawn Image(NEXT, pos)
+    pin hover = spawn Image(NEXT_HL, pos)
+    toggle hover(false)                  ;; hidden until the pointer enters
+
     par {
-        ;; hover tracking (tick on enter)
+        ;; show highlight + tick while the pointer is over
         loop {
-            await :mouse.motion until pico.vs.pos.rect(it, rect)
-            set hover = true
+            await :o.over.on
             pico.output.sound(TICK)
-            await :mouse.motion until !pico.vs.pos.rect(it, rect)
-            set hover = false
+            toggle hover(true)
+            await :o.over.off
+            toggle hover(false)
         }
     } with {
-        ;; draw next image (highlight while hovered)
-        loop on :draw {
-            pico.output.draw.image(NEXT, ['%', x=x, y=y])
-            if hover {
-                pico.output.draw.image(NEXT_HL, ['%', x=x, y=y])
-            }
-        }
-    } with {
-        ;; signal on each inside-click
-        loop on :mouse.button.dn until pico.vs.pos.rect(it, rect) {
+        ;; signal the page loop on each inside press
+        loop on :o.click.dn {
             emit @(:parent) :Next
         }
     }
