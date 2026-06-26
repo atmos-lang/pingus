@@ -1,5 +1,6 @@
 require "atmos.env.pico"
-val pico = require "pico"
+set pico = require "pico"
+require "gui"
 
 pico.set.window [ title="Pingus" ]
 set W = 800
@@ -12,55 +13,6 @@ task Blank (text) {
             pico.output.draw.rect(['%', x=0.5, y=0.5, w=1, h=1])
             pico.set.pencil [ color="white" ]
             pico.output.draw.text(text, ['%', x=0.5, y=0.5, h=0.1])
-        }
-    }
-}
-
-task Fade (cur, Next, ...) {
-    pico.layer.screenshot('~', nil, :snap)
-    toggle cur(false)
-
-    var p = 0.0
-    spawn {
-        watching until p==1 {
-            loop us on :clock {
-                set p = math.min(1, p + ((math.min(us, 40000) / 1000000) * 2))
-            }
-        }
-    }
-
-    spawn {
-        watching until p==1 {
-            loop on :draw {
-                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
-                pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
-                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
-            }
-        }
-    }
-    pin nxt = spawn Next(...)
-    spawn {
-        watching until p==1 {
-            loop on :draw {
-                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
-            }
-        }
-    }
-    await(nxt)
-    pico.layer.screenshot('~', nil, :snap)
-
-    toggle cur(true)
-    var q = 1.0
-    spawn {
-        loop on :draw {
-            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=q, h=q] ]
-            pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
-            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
-        }
-    }
-    watching until q==0 {
-        loop us on :clock {
-            set q = math.max(0, q - ((math.min(us, 40000) / 1000000) * 2))
         }
     }
 }

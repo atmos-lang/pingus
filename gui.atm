@@ -2,8 +2,6 @@
 ;;   Rect  - invisible input hit-region: over + mirrored buttons.
 ;;   Image - dumb per-frame image draw into a rect.
 
-val pico = require "pico"
-
 ;; Image: dumb per-frame draw of `path` into rect `r`. Always draws
 ;; while alive; gating is the caller's job.
 task Image (path, r) {
@@ -47,6 +45,55 @@ task Rect (r, target) {
             set r.right  = it.right
             set r.middle = it.middle
             emit @(tgt) :rect.click [rect=r]
+        }
+    }
+}
+
+task Fade (cur, Next, ...) {
+    pico.layer.screenshot('~', nil, :snap)
+    toggle cur(false)
+
+    var p = 0.0
+    spawn {
+        watching until p==1 {
+            loop us on :clock {
+                set p = math.min(1, p + ((math.min(us, 40000) / 1000000) * 2))
+            }
+        }
+    }
+
+    spawn {
+        watching until p==1 {
+            loop on :draw {
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+                pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
+            }
+        }
+    }
+    pin nxt = spawn Next(...)
+    spawn {
+        watching until p==1 {
+            loop on :draw {
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+            }
+        }
+    }
+    await(nxt)
+    pico.layer.screenshot('~', nil, :snap)
+
+    toggle cur(true)
+    var q = 1.0
+    spawn {
+        loop on :draw {
+            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=q, h=q] ]
+            pico.output.draw.layer(:snap, ['%', x=0.5, y=0.5, w=1, h=1])
+            pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+        }
+    }
+    watching until q==0 {
+        loop us on :clock {
+            set q = math.max(0, q - ((math.min(us, 40000) / 1000000) * 2))
         }
     }
 }

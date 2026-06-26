@@ -1,4 +1,4 @@
-val pico = require "pico"
+val LOGO = "data/images/core/misc/logo.png"
 
 val FOOTER = [
     infos = [
