@@ -79,10 +79,10 @@ val task Button (x, y) {
 
 task () {
     var i = 1
+    spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
     par :any {
         ;; draw the current page (the >>> button is drawn by Button)
         loop on :draw {
-            pico.output.draw.image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
             pico.set.pencil [ color="white" ]
             pico.output.draw.text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
             pico.output.draw.image(PAGES@i.img, ['%', x=0.5, y=0.39])

@@ -69,6 +69,12 @@ extraction or `match` is needed.
   `Rect` emits to `target||:parent`; `Button` re-emits `:Button`
   upward (`@2`) as today.
 
+## Adoption
+
+- `Image`: logo (`menu.atm`) + board backdrop (`intro.atm`).
+  `PAGES@i.img` stays inline for now (dynamic; revisited in the
+  intro restructure step).
+
 ## Image (path, r)
 
 Dumb per-frame draw: `loop on :draw { draw.image(path, r) }`.
