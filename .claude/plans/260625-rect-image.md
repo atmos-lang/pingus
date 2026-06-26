@@ -52,8 +52,10 @@ extraction or `match` is needed.
 Sub-tags let a consumer `await` the exact transition with no `until`
 payload filter (e.g. `await :o.over.on`, `loop on :o.click.dn`).
 `pub` still carries geometry + button state for richer reads.
-`:o.click.*` is discriminated by `match it { :mouse.button.dn => …;
-:mouse.button.up => … }` on the raw event.
+Object builds each event record directly — `emit @(tgt) [tag=tags@k,
+obj=pub]` — looking the sub-tag up in a small `tags` map keyed by the
+discriminator (`true`/`false` for over, the raw `e.tag` for click).
+No `if/else` or `match`.
 
 ### Decisions
 
@@ -147,7 +149,10 @@ atmos manual + `HISTORY.md`.
       mirror live state; no stale-`:dn` edge anymore.
 - [x] global-task form: bare `task Object (...)` (named, no `val`/`set`
       = global, since `T = task ()` is written `task T ()`).
-- [ ] confirm `||` operator and `loop on :ev until cond` in real
-      Atmos.
+- [x] runtime-verified (ran the game, all working): `||`/`&&`,
+      `loop on :ev until cond`, `do { … await(x) }` spawn cleanup,
+      per-iteration spawn cleanup + pool need, `toggle` z-slot,
+      record-emit `[tag=…, obj=…]`, computed map keys `[@(k)=v]` +
+      `tags@k`, `where` in `pub`, `#list` precedence.
 
 Plan: 260625-rect-image.md

@@ -75,7 +75,7 @@ val task Button (id, text, x, y) {
     } with {
         ;; signal the menu on each inside press
         loop on :o.click.dn {
-            emit @2 :Button [id]
+            emit @2 :Button [id=id]
         }
     }
 }
@@ -118,7 +118,7 @@ task () {
     pin menu = spawn Menu()
     loop {
         val but = await :Button
-        match but@1 {
+        match but.id {
             :Story     => await Fade(menu, Story.Intro)
             :Editor    => await Fade(menu, Blank, "Editor")
             :Levelsets => await Fade(menu, Blank, "Levelsets")
