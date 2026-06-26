@@ -1,3 +1,8 @@
-[
-    Intro = require "story.intro",
-]
+val Intro = require "story.intro"
+val World = require "story.world"
+
+;; the Story flow: the intro pages, then the worldmap.
+task () {
+    await Intro()
+    await World()
+}
