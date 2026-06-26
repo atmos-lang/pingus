@@ -75,9 +75,14 @@ extraction or `match` is needed.
   (`intro.atm`). The page image is re-spawned each page via a
   `loop _, page in PAGES { ... await :Next }` (per-iteration spawns
   die on advance — no `watching :Next` needed).
-- `Text`: TITLE + page lines (`intro.atm`), footer help (`menu.atm`),
-  Blank (`main.atm`). Page lines use a per-page `tasks(#page.text)`
-  pool. Footer infos left inline.
+- `Text`: TITLE + page lines (`intro.atm`), footer help + footer
+  infos (`menu.atm`), Blank (`main.atm`). Page lines use a per-page
+  `tasks(#page.text)` pool; footer infos are one `Text` per line in
+  a `tasks()` pool (loop-body spawns need a pool to outlive the
+  iteration).
+- `Rect` (filled-rect draw, the `draw.rect` analog) in `gui.atm`;
+  used for Blank's backdrop (`main.atm`) and the footer black bar
+  (`menu.atm`).
 
 ## Image (path, r)
 

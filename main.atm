@@ -6,14 +6,6 @@ pico.set.window [ title="Pingus" ]
 set W = 800
 pico.set.dim ['!', w=W, h=600]
 
-;; Rect: per-frame filled rectangle `rect` in `color`.
-val task Rect (rect, color) {
-    loop on :draw {
-        pico.set.pencil [ color=color, style=:fill ]
-        pico.output.draw.rect(rect)
-    }
-}
-
 task Blank (text) {
     watching :key.dn [key='Escape'] {
         spawn Rect(['%', x=0.5, y=0.5, w=1, h=1], "black")

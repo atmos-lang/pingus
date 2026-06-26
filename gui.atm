@@ -1,7 +1,16 @@
 ;; gui.atm: reusable GUI primitives (global tasks).
 ;;   Object - invisible input hit-region: over + mirrored buttons.
+;;   Rect  - dumb per-frame filled-rect draw.
 ;;   Image - dumb per-frame image draw into a rect.
 ;;   Text  - dumb per-frame text draw into a rect.
+
+;; Rect: per-frame filled rectangle `rect` in `color`.
+task Rect (rect, color) {
+    loop on :draw {
+        pico.set.pencil [ color=color, style=:fill ]
+        pico.output.draw.rect(rect)
+    }
+}
 
 ;; Image: dumb per-frame draw of `path` into rect `r`. Always draws
 ;; while alive; gating is the caller's job.
