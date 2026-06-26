@@ -48,14 +48,15 @@ val task Layer (l) {
 }
 
 ;; Button: image + label; highlights on hover (tick on enter);
-;; terminates on inside-click, returns its id.
+;; stays alive, signals the parent (:Button [id]) on each click.
 
 val task Button (id, text, x, y) {
     val dim   = pico.get.image("%", BUTTONS.image)
     val rect  = ['%', x=x, y=y, w=dim.w, h=dim.h]
 
     var hover = false
-    spawn {
+    par {
+        ;; hover tracking (tick on enter)
         loop {
             await :mouse.motion until pico.vs.pos.rect(it, rect)
             set hover = true
@@ -63,9 +64,8 @@ val task Button (id, text, x, y) {
             await :mouse.motion until !pico.vs.pos.rect(it, rect)
             set hover = false
         }
-    }
-
-    spawn {
+    } with {
+        ;; draw image + label (highlight while hovered)
         loop on :draw {
             pico.output.draw.image(BUTTONS.image, ['%', x=x, y=y])
             if hover {
@@ -74,15 +74,17 @@ val task Button (id, text, x, y) {
             pico.set.pencil [ color="white" ]
             pico.output.draw.text(text, ['%', x=x, y=y, h=0.05])
         }
+    } with {
+        ;; signal the menu on each inside-click
+        loop on :mouse.button.dn until pico.vs.pos.rect(it, rect) {
+            emit @2 :Button [id]
+        }
     }
-
-    await :mouse.button.dn until pico.vs.pos.rect(it, rect)
-    id
 }
 
-;; Menu: parallax background + 5 buttons; returns the clicked id (no loop).
+;; Menu: parallax + logo + text + 5 buttons: emits :Button
 
-task () {
+val task Menu () {
     ;; parallax background
     pin layers = tasks(5)
     loop _, l in LAYERS {
@@ -115,13 +117,26 @@ task () {
     }
 
     ;; buttons
-    do {
-        pin buttons = tasks(5)
-        spawn @buttons Button(:Story,     "Story",     0.35, 0.45)
-        spawn @buttons Button(:Editor,    "Editor",    0.65, 0.45)
-        spawn @buttons Button(:Levelsets, "Levelsets", 0.35, 0.6)
-        spawn @buttons Button(:Options,   "Options",   0.65, 0.6)
-        spawn @buttons Button(:Exit,      "Exit",      0.5,  0.75)
-        await :any buttons
+    spawn Button(:Story,     "Story",     0.35, 0.45)
+    spawn Button(:Editor,    "Editor",    0.65, 0.45)
+    spawn Button(:Levelsets, "Levelsets", 0.35, 0.6)
+    spawn Button(:Options,   "Options",   0.65, 0.6)
+    spawn Button(:Exit,      "Exit",      0.5,  0.75)
+    await(false)
+}
+
+val Story = require "story"
+
+task () {
+    pin menu = spawn Menu()
+    loop {
+        val but = await :Button
+        match but@1 {
+            :Story     => await Fade(menu, Story.Intro)
+            :Editor    => await Fade(menu, Blank, "Editor")
+            :Levelsets => await Fade(menu, Blank, "Levelsets")
+            :Options   => await Fade(menu, Blank, "Options")
+            :Exit      => break()
+        }
     }
 }
