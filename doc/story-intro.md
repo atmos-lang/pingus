@@ -11,6 +11,52 @@ notably the shared `Button` and `Image` / `Text` — so the screen
 file (`story/intro.atm`) is almost entirely page data + a paging
 loop.
 
+## Line counts
+
+Same "useful" definition as `menu.md`.
+
+| port  | screen file                  | useful |
+|-------|------------------------------|-------:|
+| C++   | `story_screen.cpp`           |    162 |
+| Céu   | `story.ceu`                  |   ~115 |
+| Atmos | `story/intro.atm`            |     52 |
+
+The C++ count omits the shared `SurfaceButton` (~62 useful) and
+the `.story` loader; the Atmos count omits the shared `gui.atm`
+(reused from the menu) — its `Button` / `Image` / `Text` / `Fade`
+are not re-spent here. Of `story/intro.atm`'s 52 useful lines,
+most are the `PAGES` data table; the paging logic itself is ~12.
+
+## Control-flow patterns
+
+| # | pattern   | where                                            |
+|---|-----------|--------------------------------------------------|
+| 3 | Dispatch  | `await :Button` advances the page loop           |
+| 4 | Lifespan  | per-page `Image` + `texts` pool die per iteration |
+| 5 | Signaling | `>>>` `Button` emits `:Button` -> the page loop  |
+|   | Watching  | `watching :key.dn [Escape]` aborts the screen    |
+
+## Takeaway
+
+The story screen is where the shared-primitive payoff shows: with
+`Button`, `Image`, `Text`, and `Fade` already defined for the
+menu, the whole screen is a `PAGES` table plus a ~12-line paging
+loop. C++/Céu re-derive a screen class, a specialized button, a
+draw override, and explicit page-state management.
+
+The structural wins mirror the menu's: per-page setup/teardown is
+loop-scope (`spawn` + `await` + iteration end) instead of manual
+`next_text` bookkeeping, and Escape-to-leave is a `watching`
+wrapper instead of an `on_escape_press` override.
+
+## Caveats
+
+- Behavioral gap: no `.story` parsing, width word-wrap, or timed
+  char-by-char reveal — text is hand-wrapped in `PAGES` and shown
+  whole.
+- No tutorial-end Credits hand-off.
+- Uses pico's default font, not the original `chalk_*` bitmaps.
+
 ## Functionality
 
 Legend: ✓ done · ✗ absent · ~ partial / different.
@@ -212,49 +258,3 @@ watching :key.dn [key='Escape'] {
 `watching` gives Escape-to-leave for free; running off the end of
 `PAGES` finishes the screen, returning to the menu's `Fade`, which
 thaws it.
-
-## Line counts
-
-Same "useful" definition as `menu.md`.
-
-| port  | screen file                  | useful |
-|-------|------------------------------|-------:|
-| C++   | `story_screen.cpp`           |    162 |
-| Céu   | `story.ceu`                  |   ~115 |
-| Atmos | `story/intro.atm`            |     52 |
-
-The C++ count omits the shared `SurfaceButton` (~62 useful) and
-the `.story` loader; the Atmos count omits the shared `gui.atm`
-(reused from the menu) — its `Button` / `Image` / `Text` / `Fade`
-are not re-spent here. Of `story/intro.atm`'s 52 useful lines,
-most are the `PAGES` data table; the paging logic itself is ~12.
-
-## Control-flow patterns
-
-| # | pattern   | where                                            |
-|---|-----------|--------------------------------------------------|
-| 3 | Dispatch  | `await :Button` advances the page loop           |
-| 4 | Lifespan  | per-page `Image` + `texts` pool die per iteration |
-| 5 | Signaling | `>>>` `Button` emits `:Button` -> the page loop  |
-|   | Watching  | `watching :key.dn [Escape]` aborts the screen    |
-
-## Takeaway
-
-The story screen is where the shared-primitive payoff shows: with
-`Button`, `Image`, `Text`, and `Fade` already defined for the
-menu, the whole screen is a `PAGES` table plus a ~12-line paging
-loop. C++/Céu re-derive a screen class, a specialized button, a
-draw override, and explicit page-state management.
-
-The structural wins mirror the menu's: per-page setup/teardown is
-loop-scope (`spawn` + `await` + iteration end) instead of manual
-`next_text` bookkeeping, and Escape-to-leave is a `watching`
-wrapper instead of an `on_escape_press` override.
-
-## Caveats
-
-- Behavioral gap: no `.story` parsing, width word-wrap, or timed
-  char-by-char reveal — text is hand-wrapped in `PAGES` and shown
-  whole.
-- No tutorial-end Credits hand-off.
-- Uses pico's default font, not the original `chalk_*` bitmaps.

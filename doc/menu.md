@@ -12,6 +12,68 @@ reuses verbatim (see `story-intro.md`). So this doc adds, on top
 of the usual tables, a per-concern **code comparison** of the
 three ports.
 
+## Line counts
+
+"Useful" excludes blank, comment-only, brace/punctuation-only,
+and (C++) `#include`/`using`/`namespace` lines; Céu's 36-line
+`#if 0` reference block is excluded too.
+
+| port  | screen-specific files                        | useful |
+|-------|----------------------------------------------|-------:|
+| C++   | `pingus_menu.cpp` 156 + `menu_button.cpp` 65 |    221 |
+| Céu   | `menu.ceu` ~104 + `button.ceu` 35            |   ~139 |
+| Atmos | `menu.atm` 63 (+ `main.atm` 13 harness)      |     63 |
+
+The Atmos figure excludes `gui.atm` (90 useful) because those
+primitives are *shared* — the story screen reuses `Object`,
+`Image`, `Text`, `Button`, `Fade`. Charging the menu its full
+share of `gui.atm` puts it near ~150, still under Céu; but the
+marginal cost of the menu *as a screen* is the 63 lines of
+`menu.atm`.
+
+None of the three count their substrate: C++ leans on
+`ScreenManager` / `gui_manager` / `LayerManager`, Céu on its
+`RRect` / `RectComponent` bindings, Atmos on `pico` + `gui.atm`.
+
+## Control-flow patterns
+
+| # | pattern   | where                                               |
+|---|-----------|-----------------------------------------------------|
+| 1 | FSM       | `Object` over-state; `Button` hover enter/leave     |
+| 3 | Dispatch  | `match but.id -> await Fade / Blank`                |
+| 4 | Lifespan  | `spawn` children in `Menu`; ending it frees them    |
+| 5 | Signaling | `Object` `:o.click.dn` -> `:Button [id]` -> menu    |
+
+## Takeaway
+
+The headline is not the background (~even work in all three); it
+is the button component and the callback / dispatch / lifecycle
+plumbing.
+
+C++ spends ~65 lines on a `MenuButton` class (flag, draw-per-
+state, AABB hit-test, setters) plus a pointer-compare dispatch and
+a `ScreenManager` stack. Atmos expresses the button as a `style`
+record + one `spawn Button(...)`, the dispatch as `match but.id`,
+and the pause as a `toggle` pair — because the button *itself* is
+a reusable `gui.atm` task shared with the story screen.
+
+The `on_click` switch, the `update` / `draw` overrides, the
+ctor/dtor ownership, and the `ScreenManager` push/pause all
+dissolve into `loop on :draw`, `emit` / `await` / `match`,
+`toggle`, and scope-based task abortion.
+
+## Caveats
+
+- C++ splits the screen and button across four files (incl.
+  headers) and carries GPL headers.
+- Céu `menu.ceu` embeds a 36-line `#if 0` block of dead reference
+  C++ (excluded above).
+- `main.atm` is just window setup + `await Menu()`; the menu task,
+  dispatch, pause (`toggle`) and `Blank` placeholder live in
+  `menu.atm` / `main.atm`.
+- The port targets a fixed 800x600 window, so it omits the
+  original's resolution-scaling path.
+
 ## Functionality
 
 What each port actually implements.
@@ -267,68 +329,6 @@ spawn Button(:Story, 1, BUTTONS, "Story") <- ['%', x=0.35, ...]
 ...
 await(false)             ;; hold the menu (and its children) alive
 ```
-
-## Line counts
-
-"Useful" excludes blank, comment-only, brace/punctuation-only,
-and (C++) `#include`/`using`/`namespace` lines; Céu's 36-line
-`#if 0` reference block is excluded too.
-
-| port  | screen-specific files                        | useful |
-|-------|----------------------------------------------|-------:|
-| C++   | `pingus_menu.cpp` 156 + `menu_button.cpp` 65 |    221 |
-| Céu   | `menu.ceu` ~104 + `button.ceu` 35            |   ~139 |
-| Atmos | `menu.atm` 63 (+ `main.atm` 13 harness)      |     63 |
-
-The Atmos figure excludes `gui.atm` (90 useful) because those
-primitives are *shared* — the story screen reuses `Object`,
-`Image`, `Text`, `Button`, `Fade`. Charging the menu its full
-share of `gui.atm` puts it near ~150, still under Céu; but the
-marginal cost of the menu *as a screen* is the 63 lines of
-`menu.atm`.
-
-None of the three count their substrate: C++ leans on
-`ScreenManager` / `gui_manager` / `LayerManager`, Céu on its
-`RRect` / `RectComponent` bindings, Atmos on `pico` + `gui.atm`.
-
-## Control-flow patterns
-
-| # | pattern   | where                                               |
-|---|-----------|-----------------------------------------------------|
-| 1 | FSM       | `Object` over-state; `Button` hover enter/leave     |
-| 3 | Dispatch  | `match but.id -> await Fade / Blank`                |
-| 4 | Lifespan  | `spawn` children in `Menu`; ending it frees them    |
-| 5 | Signaling | `Object` `:o.click.dn` -> `:Button [id]` -> menu    |
-
-## Takeaway
-
-The headline is not the background (~even work in all three); it
-is the button component and the callback / dispatch / lifecycle
-plumbing.
-
-C++ spends ~65 lines on a `MenuButton` class (flag, draw-per-
-state, AABB hit-test, setters) plus a pointer-compare dispatch and
-a `ScreenManager` stack. Atmos expresses the button as a `style`
-record + one `spawn Button(...)`, the dispatch as `match but.id`,
-and the pause as a `toggle` pair — because the button *itself* is
-a reusable `gui.atm` task shared with the story screen.
-
-The `on_click` switch, the `update` / `draw` overrides, the
-ctor/dtor ownership, and the `ScreenManager` push/pause all
-dissolve into `loop on :draw`, `emit` / `await` / `match`,
-`toggle`, and scope-based task abortion.
-
-## Caveats
-
-- C++ splits the screen and button across four files (incl.
-  headers) and carries GPL headers.
-- Céu `menu.ceu` embeds a 36-line `#if 0` block of dead reference
-  C++ (excluded above).
-- `main.atm` is just window setup + `await Menu()`; the menu task,
-  dispatch, pause (`toggle`) and `Blank` placeholder live in
-  `menu.atm` / `main.atm`.
-- The port targets a fixed 800x600 window, so it omits the
-  original's resolution-scaling path.
 
 ## TODO
 
