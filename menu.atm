@@ -32,18 +32,17 @@ val LAYERS = [
 
 val task Layer (l) {
     var x = 0.0
-    par {
-        loop us on :clock {
-            set x = x + ((l.speed * us) / 1000000)
-            if x >= W {
-                set x = x - W
-            }
+    val r1 = ['!', x=x+(W/2), y=l.y, anchor=:N]
+    val r2 = ['!', x=x-(W/2), y=l.y, anchor=:N]
+    spawn Image(l.png, r1)
+    spawn Image(l.png, r2)
+    loop us on :clock {
+        set x = x + ((l.speed * us) / 1000000)
+        if x >= W {
+            set x = x - W
         }
-    } with {
-        loop on :draw {
-            pico.output.draw.image(l.png, ['!', x=x+(W/2), y=l.y, anchor=:N])
-            pico.output.draw.image(l.png, ['!', x=x-(W/2), y=l.y, anchor=:N])
-        }
+        set r1.x = x + (W/2)
+        set r2.x = x - (W/2)
     }
 }
 
