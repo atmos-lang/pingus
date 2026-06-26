@@ -14,7 +14,7 @@ Both live as **global tasks** in a new `gui.atm`.
 - [x] verify APIs (pointer query, emit target)
 - [x] propose in Atmos (Object/Image drafted in chat)
 - [x] implement `Object` + `Image` in `gui.atm`
-- [~] Button refactor: out of scope (future)
+- [x] Button refactor: Object + Image + Text (do/await scopes)
 
 ## Motivation
 
@@ -94,22 +94,22 @@ Always draws while alive; gating is the caller's job.
   builds `r` from `get.image` dims the scale is identity (no pixel
   change vs. today).
 
-## Button (out of scope)
+## Button (done)
 
-NOT part of this plan — `menu.atm` stays as-is.
-Kept here only as the intended future consumer / validation sketch.
+`menu.atm`'s `Button` now composes `Object` + `Image` + `Text`:
 
-Would collapse to a composition:
+- `spawn Object(rect)` is the input; emits `:o.over`/`:o.click` to
+  the Button (its `:parent`).
+- base / highlight / label spawned once at top in z-order
+  (`base < highlight < label`); the highlight is `toggle`d off and
+  flipped on/off by `:o.over` transitions (freeze semantics, same as
+  `Fade`), so its z-slot is preserved — no rebuild.
+- click: `loop on :o.click until it.obj.left { emit @2 :Button [id] }`
+  (keeps press only; `:o.click` fires on press + release).
+- signature `(id, text, x, y)` unchanged → call-sites untouched.
 
-- build `rect` from `x,y` + image dims (signature unchanged).
-- `pin o = spawn Object(rect)`; `watching (await :o.click until
-  o.pub.left) { par { ... } }` ends on a left-press inside, returns
-  `id` (replaces `await :mouse.button.dn until inside`).
-- par branches: `spawn Image(base, rect)`;
-  `loop on :draw` highlight-while-`o.pub.over` + label; tick on enter
-  (`await :o.over until o.pub.over`).
-- text keeps its own `h=0.05` rect (not `r`).
-- call-sites `menu.atm:120-124` untouched.
+Pattern: `do { ...spawns; await(x) }` replaces `watching x { ...;
+await(false) }` — the block scope finalizes the spawns on `x`.
 
 ## API check (verified)
 

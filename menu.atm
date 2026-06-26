@@ -51,32 +51,30 @@ val task Layer (l) {
 ;; stays alive, signals the parent (:Button [id]) on each click.
 
 val task Button (id, text, x, y) {
-    val dim   = pico.get.image("%", BUTTONS.image)
-    val rect  = ['%', x=x, y=y, w=dim.w, h=dim.h]
+    val dim  = pico.get.image("%", BUTTONS.image)
+    val rect = ['%', x=x, y=y, w=dim.w, h=dim.h]
+    val pos  = ['%', x=x, y=y]
+    val lbl  = ['%', x=x, y=y, h=0.05]
 
-    var hover = false
+    ;; input + visuals (z-order: base < highlight < label)
+    spawn Object(rect)
+    spawn Image(BUTTONS.image, pos)
+    pin hover = spawn Image(BUTTONS.hover, pos)
+    spawn Text(text, lbl)
+    toggle hover(false)                  ;; hidden until the pointer enters
+
     par {
-        ;; hover tracking (tick on enter)
+        ;; show highlight + tick while the pointer is over
         loop {
-            await :mouse.motion until pico.vs.pos.rect(it, rect)
-            set hover = true
+            await :o.over until it.obj.over
             pico.output.sound(BUTTONS.sound)
-            await :mouse.motion until !pico.vs.pos.rect(it, rect)
-            set hover = false
+            toggle hover(true)
+            await :o.over until (!it.obj.over)
+            toggle hover(false)
         }
     } with {
-        ;; draw image + label (highlight while hovered)
-        loop on :draw {
-            pico.output.draw.image(BUTTONS.image, ['%', x=x, y=y])
-            if hover {
-                pico.output.draw.image(BUTTONS.hover, ['%', x=x, y=y])
-            }
-            pico.set.pencil [ color="white" ]
-            pico.output.draw.text(text, ['%', x=x, y=y, h=0.05])
-        }
-    } with {
-        ;; signal the menu on each inside-click
-        loop on :mouse.button.dn until pico.vs.pos.rect(it, rect) {
+        ;; signal the menu on each inside left-press
+        loop on :o.click until it.obj.left {
             emit @2 :Button [id]
         }
     }
