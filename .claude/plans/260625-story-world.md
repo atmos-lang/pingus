@@ -9,9 +9,17 @@ the algorithmic parts.
 
 ## Status
 
-- [ ] copy assets + a worldmap data file into the repo
-- [ ] slice 1 (MVP): bg + static dots + standing pingu +
-  click-to-select + leave button
+- [x] copy assets (dots, pingu, arrow, leave button, layer0 bg,
+  chink) into the repo
+- [~] slice 1 (MVP): `story/world.atm` (`task World`, in the Story
+  flow: intro -> world). Camera = a static `CAMX/CAMY` offset
+  subtracted per draw (the `scene.dim/src` camera tripped pico's
+  `layer.c` `aux` clip assertion — revisit the scene-based,
+  following camera in slice 3). Crash also needed `get.image("!",..)`
+  for `'!'` rects (`"%"` returns normalized dims -> ~0px -> the same
+  `aux` assertion). bg, 4
+  status dots (Buttons), standing pingu + arrow, leave button,
+  dispatch (Leave/locked/open). Pending a run.
 - [ ] slice 2: walking pingu along paths (path graph + traversal)
 - [ ] slice 3: camera follow + parallax layers
 - [ ] slice 4: real savegame status, outro/credits, sounds
