@@ -49,8 +49,7 @@ task () {
     ;; static backdrop + title + >>> button (whole intro)
     spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
     spawn Text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
-    val dim = pico.get.image("%", BUTTON.image)
-    spawn Button(:Next, 1, BUTTON, nil, ['%', x=0.85, y=0.85, w=dim.w, h=dim.h])
+    spawn Button(:Next, 1, BUTTON, nil) <- ['%', x=0.85, y=0.85]
 
     ;; pages: type each line letter-by-letter — finished lines stay in
     ;; a pool, the line being typed is a per-char Text re-spawned every

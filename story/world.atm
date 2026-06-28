@@ -35,19 +35,26 @@ val NODES = [
     [ x=793, y=624, status=:invalid ],
 ]
 
-;; Hud: fixed UI overlay (window-space). The par:any sets/resets the
-;; layer around the body each reaction, so its Buttons draw + hit-test
-;; on :hud -- gui Button is unchanged. Buttons use target=2 (Button ->
-;; Hud -> World).
+;; Hud: fixed UI overlay. Creates a full-window :hud over :world -- the
+;; window-pixel mouse events then match :hud 1:1, so the gui Object
+;; hit-test works unchanged. The par sets/resets the layer around the
+;; body each reaction: enter sets :hud, leave resets :world. `await
+;; Button` sits in a par branch, which adds a task level, so target=3
+;; (Button -> branch -> Hud -> World; see bug.atm).
 val task Hud () {
+    pico.layer.empty(:window, :hud, true, ['%', w=1, h=1])
     par {
-        loop on true { pico.set.layer(:hud) }
+        loop on true {
+            pico.set.layer(:hud)
+        }
     } with {
         await Button(:Leave, 2, LEAVE, nil) <- [
             '%', x=0, y=1, anchor=:SW
         ]
     } with {
-        loop on true { pico.set.layer(:world) }
+        loop on true {
+            pico.set.layer(:world)
+        }
     }
 }
 
@@ -64,9 +71,6 @@ val task World () {
             source =['%', x=0.5, y=0.5, w=1, h=1]
         ]
     }
-
-    ;; :hud overlay (window-space), over :world, for fixed UI
-    pico.layer.empty(:window, :hud, true, ['!', w=W, h=600])
 
     ;; background (the whole map, at literal map pixels)
     spawn Image(MAP, ['!', x=0, y=0, anchor=:NW])

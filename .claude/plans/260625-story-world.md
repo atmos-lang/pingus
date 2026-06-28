@@ -20,7 +20,15 @@ the algorithmic parts.
   Two pico gotchas fixed: `'!'` rects need `get.image("!",..)` (not
   `"%"`, which gives normalized dims -> ~0px -> `layer.c aux`
   assertion); scene fields are `source`/`target`, not `src`/`dst`.
-- [ ] verify Leave -> menu (scene restore) + dot hover/click live
+- [x] Leave -> menu: full-window `:hud` (window px == hud px, so the
+  gui `Object` hit-test works unchanged) created in `Hud`; `par`
+  enter/leave brackets the leave `Button` (`:hud` / `:world`);
+  `await Button` is in a `par` branch -> +1 task level -> `target=3`
+  (`Button -> branch -> Hud -> World`, see `bug.atm`). Verified
+  offscreen: hover highlights, click returns to the menu (scene
+  restored).
+- [ ] dots hover/click live (still broken: same window-vs-layer
+  hit-test bug, needs the gui `Object` `:window` hint -- deferred)
 - [ ] slice 2: walking pingu along paths (path graph + traversal)
 - [ ] slice 3: camera follow + parallax layers
 - [ ] slice 4: real savegame status, outro/credits, sounds

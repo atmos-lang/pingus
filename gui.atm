@@ -12,21 +12,21 @@ task Rect (rect, color) {
     }
 }
 
-;; Image: dumb per-frame draw of `path` into rect `r`. Always draws
+;; Image: dumb per-frame draw of `path` into `rect`. Always draws
 ;; while alive; gating is the caller's job.
-task Image (path, r) {
+task Image (path, rect) {
     loop on :draw {
-        pico.output.draw.image(path, r)
+        pico.output.draw.image(path, rect)
     }
 }
 
-;; Text: dumb per-frame draw of `text` into rect `r`, in `color`
+;; Text: dumb per-frame draw of `text` into `rect`, in `color`
 ;; (white by default). Re-sets the pencil each frame.
-task Text (text, r, color) {
+task Text (text, rect, color) {
     val c = color || "white"
     loop on :draw {
         pico.set.pencil [ color=c ]
-        pico.output.draw.text(text, r)
+        pico.output.draw.text(text, rect)
     }
 }
 
@@ -89,6 +89,7 @@ task Object (rect, target) {
 ;; `style` = [image, hover, sound].
 task Button (id, target, style, text, rect) {
     spawn Object(rect)
+    pico.get.image(style.image, rect)
     spawn Image(style.image, rect)
     pin hl = spawn Image(style.hover, rect)
     toggle hl(false)                     ;; hidden until the pointer enters
