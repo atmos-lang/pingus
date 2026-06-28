@@ -11,15 +11,16 @@ the algorithmic parts.
 
 - [x] copy assets (dots, pingu, arrow, leave button, layer0 bg,
   chink) into the repo
-- [~] slice 1 (MVP): `story/world.atm` (`task World`, in the Story
-  flow: intro -> world). Camera = a static `CAMX/CAMY` offset
-  subtracted per draw (the `scene.dim/src` camera tripped pico's
-  `layer.c` `aux` clip assertion — revisit the scene-based,
-  following camera in slice 3). Crash also needed `get.image("!",..)`
-  for `'!'` rects (`"%"` returns normalized dims -> ~0px -> the same
-  `aux` assertion). bg, 4
-  status dots (Buttons), standing pingu + arrow, leave button,
-  dispatch (Leave/locked/open). Pending a run.
+- [x] slice 1 (MVP): `story/world.atm` (`task World`, Story flow:
+  intro -> world). Runs (verified offscreen). Scene-based static
+  camera: `scene.dim` = the map + `scene.source` = a `CAM` viewport
+  (literal `'!'` map coords; hit-test projects through the scene;
+  restored on exit). bg + 4 status dots (Buttons) + standing pingu
+  + arrow + leave button + dispatch (Leave/locked/open).
+  Two pico gotchas fixed: `'!'` rects need `get.image("!",..)` (not
+  `"%"`, which gives normalized dims -> ~0px -> `layer.c aux`
+  assertion); scene fields are `source`/`target`, not `src`/`dst`.
+- [ ] verify Leave -> menu (scene restore) + dot hover/click live
 - [ ] slice 2: walking pingu along paths (path graph + traversal)
 - [ ] slice 3: camera follow + parallax layers
 - [ ] slice 4: real savegame status, outro/credits, sounds

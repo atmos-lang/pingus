@@ -35,15 +35,41 @@ val NODES = [
     [ x=793, y=624, status=:invalid ],
 ]
 
+;; Hud: fixed UI overlay (window-space). The par:any sets/resets the
+;; layer around the body each reaction, so its Buttons draw + hit-test
+;; on :hud -- gui Button is unchanged. Buttons use target=2 (Button ->
+;; Hud -> World).
+val task Hud () {
+    par {
+        loop on true { pico.set.layer(:hud) }
+    } with {
+        await Button(:Leave, 2, LEAVE, nil) <- [
+            '%', x=0, y=1, anchor=:SW
+        ]
+    } with {
+        loop on true { pico.set.layer(:world) }
+    }
+}
+
 val task World () {
     ;; retarget :world to the map, with a static camera viewport
     pico.set.scene [
         dim = ['!', w=1920, h=1200],
         source =['!', x=CAM.x, y=CAM.y, w=W, h=600, anchor=:NW]
     ]
+    defer {
+        ;; restore the window scene so the thawed menu draws correctly
+        pico.set.scene [
+            dim = ['!', w=W, h=600],
+            source =['%', x=0.5, y=0.5, w=1, h=1]
+        ]
+    }
+
+    ;; :hud overlay (window-space), over :world, for fixed UI
+    pico.layer.empty(:window, :hud, true, ['!', w=W, h=600])
 
     ;; background (the whole map, at literal map pixels)
-    spawn Image(MAP, ['!', x=0, y=0, w=1920, h=1200, anchor=:NW])
+    spawn Image(MAP, ['!', x=0, y=0, anchor=:NW])
 
     ;; dots (Buttons): sprite + click-id chosen from the mock status
     pin dots = tasks(#NODES)
@@ -66,9 +92,8 @@ val task World () {
     spawn Image(DIR ++ "pingus_standing.png", ['!', x=513, y=713, anchor=:S])
     spawn Image(DIR ++ "arrow.png", ['!', x=513, y=685, anchor=:S])
 
-    ;; leave button (viewport bottom-left, in map pixels)
-    val lv = pico.get.image("!", LEAVE.image)
-    spawn Button(:Leave, 0, LEAVE, nil, ['!', x=140, y=975, w=lv.w, h=lv.h, anchor=:NW])
+    ;; fixed UI overlay (leave button) on :hud
+    spawn Hud()
 
     ;; dispatch: Leave -> menu; locked dot -> chink; open dot -> ack
     loop {
@@ -79,12 +104,6 @@ val task World () {
             :Open   => pico.output.sound(SOUNDS.tick)
         }
     }
-
-    ;; restore the window scene so the thawed menu draws correctly
-    pico.set.scene [
-        dim = ['!', w=W, h=600],
-        source =['%', x=0.5, y=0.5, w=1, h=1]
-    ]
 }
 
 World
