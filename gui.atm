@@ -88,8 +88,8 @@ task Object (rect, target) {
 ;; is relative to the caller (0 = the caller, 1 = its parent, ...).
 ;; `style` = [image, hover, sound].
 task Button (id, target, style, text, rect) {
-    spawn Object(rect)
     pico.get.image(rect, style.image)
+    spawn Object(rect)
     spawn Image(style.image, rect)
     pin hl = spawn Image(style.hover, rect)
     toggle hl(false)                     ;; hidden until the pointer enters
