@@ -88,8 +88,7 @@ val task World () {
             :red     => :Open
             :invalid => :Locked
         }
-        val d = pico.get.image("!", sp.image)
-        spawn @dots Button(act, 0, sp, nil, ['!', x=nd.x, y=nd.y, w=d.w, h=d.h])
+        spawn @dots Button(act, 0, sp, nil) <- ['!', x=nd.x, y=nd.y]
     }
 
     ;; standing pingu + target arrow on leveldot_1

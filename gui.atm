@@ -89,7 +89,7 @@ task Object (rect, target) {
 ;; `style` = [image, hover, sound].
 task Button (id, target, style, text, rect) {
     spawn Object(rect)
-    pico.get.image(style.image, rect)
+    pico.get.image(rect, style.image)
     spawn Image(style.image, rect)
     pin hl = spawn Image(style.hover, rect)
     toggle hl(false)                     ;; hidden until the pointer enters
