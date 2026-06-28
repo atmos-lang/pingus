@@ -1,0 +1,90 @@
+;; story/world.atm: the tutorial worldmap (slice 1 — static MVP).
+;; The map (1920x1200) is larger than the 800x600 window, so the
+;; `:world` layer is retargeted to the map's coordinate space
+;; (scene.dim = the map) and the camera is a static viewport into it
+;; (scene.src = CAM). Everything then draws at literal '!' map pixels,
+;; and the mouse hit-test projects through the same scene. The scene
+;; is restored on exit. Reuses gui `Image`/`Button`: each dot is a
+;; Button whose sprite + click-id follow a mock status; Leave returns
+;; to the menu. A following camera, walking pingu, paths, and
+;; `.worldmap` parsing are later slices.
+
+val DIR = "data/images/core/worldmap/"
+val MAP = "data/images/worldmaps/tutorial_layer0.png"
+
+val SOUNDS = [
+    tick  = "data/sounds/tick.wav",
+    chink = "data/sounds/chink.wav",
+]
+
+;; static camera: top-left of the 800x600 viewport in map pixels,
+;; centering leveldot_1 (513,713)
+val CAM = [ x=113, y=413 ]
+
+val LEAVE = [
+    image = DIR ++ "leave_button_normal.png",
+    hover = DIR ++ "leave_button_hover.png",
+    sound = SOUNDS.tick,
+]
+
+;; slice-1 nodes: literal map-pixel position + mock status
+val NODES = [
+    [ x=513, y=713, status=:red     ],
+    [ x=618, y=703, status=:green   ],
+    [ x=704, y=659, status=:invalid ],
+    [ x=793, y=624, status=:invalid ],
+]
+
+val task World () {
+    ;; retarget :world to the map, with a static camera viewport
+    pico.set.scene [
+        dim = ['!', w=1920, h=1200],
+        source =['!', x=CAM.x, y=CAM.y, w=W, h=600, anchor=:NW]
+    ]
+
+    ;; background (the whole map, at literal map pixels)
+    spawn Image(MAP, ['!', x=0, y=0, w=1920, h=1200, anchor=:NW])
+
+    ;; dots (Buttons): sprite + click-id chosen from the mock status
+    pin dots = tasks(#NODES)
+    loop _, nd in NODES {
+        val sp = match nd.status {
+            :green   => [ image=DIR++"dot_green.png",   hover=DIR++"dot_green_hl.png", sound=SOUNDS.tick ]
+            :red     => [ image=DIR++"dot_red.png",     hover=DIR++"dot_red_hl.png",   sound=SOUNDS.tick ]
+            :invalid => [ image=DIR++"dot_invalid.png", hover=DIR++"dot_invalid.png",  sound=SOUNDS.tick ]
+        }
+        val act = match nd.status {
+            :green   => :Open
+            :red     => :Open
+            :invalid => :Locked
+        }
+        val d = pico.get.image("!", sp.image)
+        spawn @dots Button(act, 0, sp, nil, ['!', x=nd.x, y=nd.y, w=d.w, h=d.h])
+    }
+
+    ;; standing pingu + target arrow on leveldot_1
+    spawn Image(DIR ++ "pingus_standing.png", ['!', x=513, y=713, anchor=:S])
+    spawn Image(DIR ++ "arrow.png", ['!', x=513, y=685, anchor=:S])
+
+    ;; leave button (viewport bottom-left, in map pixels)
+    val lv = pico.get.image("!", LEAVE.image)
+    spawn Button(:Leave, 0, LEAVE, nil, ['!', x=140, y=975, w=lv.w, h=lv.h, anchor=:NW])
+
+    ;; dispatch: Leave -> menu; locked dot -> chink; open dot -> ack
+    loop {
+        val but = await :Button
+        match but.id {
+            :Leave  => break()
+            :Locked => pico.output.sound(SOUNDS.chink)
+            :Open   => pico.output.sound(SOUNDS.tick)
+        }
+    }
+
+    ;; restore the window scene so the thawed menu draws correctly
+    pico.set.scene [
+        dim = ['!', w=W, h=600],
+        source =['%', x=0.5, y=0.5, w=1, h=1]
+    ]
+}
+
+World

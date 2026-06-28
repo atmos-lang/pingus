@@ -62,10 +62,10 @@ task Object (rect, target) {
             @(false) = :o.over.off,
         ]
         loop e on :mouse.motion {
-            val o = pico.vs.pos.rect(e, rect)
-            if o != pub.over {
-                set pub.over = o
-                emit @(tgt) [tag=tags@o, obj=pub]
+            val over = pico.vs.pos.rect(e, rect)
+            if over != pub.over {
+                set pub.over = over
+                emit @(tgt) [tag=tags@over, obj=pub]
             }
         }
     } with {
