@@ -46,7 +46,7 @@ val task Layer (l) {
     }
 }
 
-;; Menu: parallax + logo + text + 5 buttons: emits :Button
+;; Menu: parallax + logo + text + 5 buttons (each emits :o.click)
 
 val task Menu () {
     ;; parallax background
@@ -83,8 +83,8 @@ val Story = require "story"
 task () {
     pin menu = spawn Menu()
     loop {
-        val but = await :Button
-        match but.id {
+        val e = await :o.click.dn
+        match e.id {
             :Story   => await Fade(menu, Story)
             :Editor  => await Fade(menu, Blank, "Editor")
             :Levels  => await Fade(menu, Blank, "Levelsets")

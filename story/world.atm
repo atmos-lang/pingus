@@ -102,8 +102,8 @@ val task World () {
 
     ;; dispatch: Leave -> menu; locked dot -> chink; open dot -> ack
     loop {
-        val but = await :Button
-        match but.id {
+        val e = await :o.click.dn
+        match e.id {
             :Leave  => break()
             :Locked => pico.output.sound(SOUNDS.chink)
             :Open   => pico.output.sound(SOUNDS.tick)

@@ -59,7 +59,7 @@ task () {
         loop _, page in PAGES {
             spawn Image(page.img, ['%', x=0.5, y=0.39])
             pin ls = tasks(#page.lines)
-            watching (:Button || :key.dn [key='Space']) {
+            watching (:o.click.dn || :key.dn [key='Space']) {
                 loop l, line in page.lines {
                     val r = [
                         '%', x=0.15, y=0.56+((l-1)*0.04), h=0.025, anchor=:W
@@ -79,7 +79,7 @@ task () {
                     '%', x=0.15, y=0.56 + ((i-1) * 0.04), h=0.025, anchor=:W
                 ]
             }
-            await (:Button || :key.dn [key='Space'])
+            await (:o.click.dn || :key.dn [key='Space'])
         }
     }
 }
