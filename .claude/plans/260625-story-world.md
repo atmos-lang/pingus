@@ -28,7 +28,18 @@ the algorithmic parts.
   offscreen: hover highlights, click returns to the menu (scene
   restored).
 - [ ] dots hover/click live (still broken: same window-vs-layer
-  hit-test bug, needs the gui `Object` `:window` hint -- deferred)
+  hit-test bug; fix = switch `Object` from the raw event `e` to
+  `pico.get.mouse` (projects window->current layer); dot `target`
+  already 2 (pool adds a level, see pool test))
+- [x] `Fade` runs on `:window` not `:world`: 2 screenshots `src=:window`
+  + 3 `:draw` loops bracket `set.layer(:window) .. set.layer(old)`, so
+  the wipe clip is screen-space (was distorted once `:world` -> map).
+  Verified: menu->world transition clean (mid-wipe not freezable in
+  xvfb -- unthrottled clock makes it near-instant).
+- [x] leave button: full-window `:hud` made in `Hud`; `loop { set :hud;
+  await(true) }` sets `:hud` at init so `get.image` sizes `'%'` vs
+  `:hud`; flush SW like C++ (`SurfaceButton(0, h-37)`); "Leave" label
+  via `pico.xin.rect`; freed on exit by `menu.atm` `push`/`pop`.
 - [ ] slice 2: walking pingu along paths (path graph + traversal)
 - [ ] slice 3: camera follow + parallax layers
 - [ ] slice 4: real savegame status, outro/credits, sounds
