@@ -95,7 +95,9 @@ task Button (id, target, style, text, rect) {
     toggle hl(false)                     ;; hidden until the pointer enters
     pin t = tasks(1)
     if text {
-        spawn @t Text(text, ['%', x=rect.x, y=rect.y, h=0.05])
+        spawn @t Text(text, r) where {
+            r = pico.xin.rect(rect, ['%', x=0.5, y=0.5, h=0.5])
+        }
     }
 
     par {

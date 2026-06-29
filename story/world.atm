@@ -44,16 +44,18 @@ val NODES = [
 val task Hud () {
     pico.layer.empty(:window, :hud, true, ['%', w=1, h=1])
     par {
-        loop on true {
+        loop {
             pico.set.layer(:hud)
+            await(true)
         }
     } with {
-        await Button(:Leave, 2, LEAVE, nil) <- [
+        await Button(:Leave, 2, LEAVE, "Leave") <- [
             '%', x=0, y=1, anchor=:SW
         ]
     } with {
-        loop on true {
+        loop {
             pico.set.layer(:world)
+            await(true)
         }
     }
 }
@@ -88,7 +90,7 @@ val task World () {
             :red     => :Open
             :invalid => :Locked
         }
-        spawn @dots Button(act, 0, sp, nil) <- ['!', x=nd.x, y=nd.y]
+        spawn @dots Button(act, 2, sp, nil) <- ['!', x=nd.x, y=nd.y]
     }
 
     ;; standing pingu + target arrow on leveldot_1
