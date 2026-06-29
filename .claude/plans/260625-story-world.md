@@ -27,10 +27,10 @@ the algorithmic parts.
   (`Button -> branch -> Hud -> World`, see `bug.atm`). Verified
   offscreen: hover highlights, click returns to the menu (scene
   restored).
-- [ ] dots hover/click live (still broken: same window-vs-layer
-  hit-test bug; fix = switch `Object` from the raw event `e` to
-  `pico.get.mouse` (projects window->current layer); dot `target`
-  already 2 (pool adds a level, see pool test))
+- [ ] **NEXT: dots hover/click live** (the only slice-1 gap) -- see
+  "Next step" below
+- [ ] re-enable `await Intro()` in `story/init.atm` (commented out
+  while testing the worldmap; restore intro -> world flow)
 - [x] `Fade` runs on `:window` not `:world`: 2 screenshots `src=:window`
   + 3 `:draw` loops bracket `set.layer(:window) .. set.layer(old)`, so
   the wipe clip is screen-space (was distorted once `:world` -> map).
@@ -44,6 +44,37 @@ the algorithmic parts.
 - [ ] slice 3: camera follow + parallax layers
 - [ ] slice 4: real savegame status, outro/credits, sounds
 - [ ] continue here from the intro story's last page
+
+## Next step: clickable dots
+
+The dots draw on `:world` (the map), but the mouse event `e` is in
+**window pixels** (`input.c:218`, "regardless of current layer"). The
+gui `Object` does `pico.vs.pos.rect(e, rect)` with no layer arg, so it
+reads `e` in the current layer (`:world` = map) -> the dot hit-test
+always misses. (The leave button dodged this only because its `:hud`
+is window-sized, so window px == layer px.)
+
+Fix -- switch `Object` from the raw event `e` to `pico.get.mouse`,
+which projects the window cursor into the current layer through the
+scene (`input.c:41` `pico_cv_pos`):
+
+| where (`gui.atm` `Object`) | from | to |
+|----------------------------|------|----|
+| motion loop | `pico.vs.pos.rect(e, rect)` | `pico.vs.pos.rect(pico.get.mouse('%'), rect)` |
+| button loop | (uses `pub.over`) | unchanged -- `pub.over` now correct |
+
+- `pub` init already uses `get.mouse('%')`, so this just makes the
+  motion loop consistent -- no new layer juggling, no `:window` hint.
+- dot `target` is already `2` (the pool adds a level; see the pool
+  test), so once the hit-test lands, the click dispatches to `World`.
+- caveat: `get.mouse` reads the live cursor, which on a `:mouse.motion`
+  equals `e`'s position -- so behaviour for window-space buttons
+  (menu, leave) is unchanged; only off-window-layer hit-tests get fixed.
+- this is the same `Object` touched by `260629-object.md`; this fix is
+  small and orthogonal, so do it first, then the id refactor on top.
+
+Verify offscreen: hover a dot (highlight + tick), click an `:Open`
+dot (tick) and an `:invalid` dot (chink).
 
 ## Behavior (from C++/Céu survey)
 

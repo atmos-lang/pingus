@@ -33,6 +33,23 @@ This is the simpler of the two — port it first.
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
 
+## Next step (explicit)
+
+Wire `story/intro.atm` to the generated data file:
+
+1. copy assets from `pingus.cpp`:
+   - `data/images/story/story3.png` .. `story6.png`
+   - (defer music: `data/music/pingus-4.it`)
+2. in `story/intro.atm`, replace the hardcoded
+   `val TITLE` + `val PAGES` block (lines ~3-46) with:
+   ```
+   val DATA  = require "data/stories/tutorial_intro.story"
+   val TITLE = DATA.title
+   val PAGES = DATA.pages
+   ```
+   (slash form — dots collide with the `.story` in the name)
+3. leave the page loop / typewriter as-is (already drives `PAGES`).
+
 ## Source format
 
 `stories/tutorial_intro.story` (s-expr, ~7 pages):
