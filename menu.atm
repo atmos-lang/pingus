@@ -84,6 +84,7 @@ task () {
     pin menu = spawn Menu()
     loop {
         val e = await :o.click.dn
+        pico.push()
         match e.id {
             :Story   => await Fade(menu, Story)
             :Editor  => await Fade(menu, Blank, "Editor")
@@ -91,5 +92,6 @@ task () {
             :Options => await Fade(menu, Blank, "Options")
             :Exit    => break()
         }
+        pico.pop()
     }
 }
