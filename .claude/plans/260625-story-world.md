@@ -31,11 +31,6 @@ the algorithmic parts.
   "Next step" below
 - [ ] re-enable `await Intro()` in `story/init.atm` (commented out
   while testing the worldmap; restore intro -> world flow)
-- [x] `Fade` runs on `:window` not `:world`: 2 screenshots `src=:window`
-  + 3 `:draw` loops bracket `set.layer(:window) .. set.layer(old)`, so
-  the wipe clip is screen-space (was distorted once `:world` -> map).
-  Verified: menu->world transition clean (mid-wipe not freezable in
-  xvfb -- unthrottled clock makes it near-instant).
 - [x] leave button: full-window `:hud` made in `Hud`; `loop { set :hud;
   await(true) }` sets `:hud` at init so `get.image` sizes `'%'` vs
   `:hud`; flush SW like C++ (`SurfaceButton(0, h-37)`); "Leave" label
