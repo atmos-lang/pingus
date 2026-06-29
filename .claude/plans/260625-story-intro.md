@@ -21,11 +21,15 @@ This is the simpler of the two — port it first.
   label) that `emit @(:parent) :Next` on click; the advance loop
   `await :Next` (i+1; `break` at `#PAGES`); last page or `Escape`
   finishes -> returns.
-- [ ] TODO: convert `data/stories/tutorial_intro.story` -> a generated
-  `.atm` data file (a `PAGES` table: title, music, pages of
-  `{img, text}`), loaded via `require` — like the font tables
-  (`260624-font-bitmap.md`). Replaces the hardcoded `PAGES` and
-  avoids a runtime s-expr parser. (`text` pre-wrapped at conversion.)
+- [~] convert `.story` -> generated `.atm`: DONE the data file
+  `data/stories/tutorial_intro.story.atm` (mirrors the C++ path +
+  `.atm` suffix; module returns `[title, music, pages]`; all 8
+  pages, text pre-wrapped ~53 cols; mirrors font tables).
+  PENDING: point `intro.atm` at
+  `require "data/stories/tutorial_intro.story"` (slash form — dots
+  collide with `.story`) (replace its hardcoded `TITLE`/`PAGES`).
+  - NOTE: `story3..6.png` + `pingus-4.it` not yet copied from
+    `pingus.cpp` — pages 4-8 / music will not load until copied.
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
 
