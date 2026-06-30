@@ -21,15 +21,14 @@ This is the simpler of the two — port it first.
   label) that `emit @(:parent) :Next` on click; the advance loop
   `await :Next` (i+1; `break` at `#PAGES`); last page or `Escape`
   finishes -> returns.
-- [~] convert `.story` -> generated `.atm`: DONE the data file
-  `data/stories/tutorial_intro.story.atm` (mirrors the C++ path +
-  `.atm` suffix; module returns `[title, music, pages]`; all 8
-  pages, text pre-wrapped ~53 cols; mirrors font tables).
-  PENDING: point `intro.atm` at
-  `require "data/stories/tutorial_intro.story"` (slash form — dots
-  collide with `.story`) (replace its hardcoded `TITLE`/`PAGES`).
-  - NOTE: `story3..6.png` + `pingus-4.it` not yet copied from
-    `pingus.cpp` — pages 4-8 / music will not load until copied.
+- [x] convert `.story` -> generated `.atm`: data file is
+  `data/stories/tutorial_intro.atm` (renamed: inner `.story` dropped
+  — `require` turns every `.` into `/`, so a double-dotted name is
+  unloadable; slash form does NOT help). Module returns
+  `[title, music, pages]`; all 8 pages, text pre-wrapped ~53 cols.
+  `intro.atm` now `require`s it (replaced hardcoded `TITLE`/`PAGES`).
+  - [x] copied `story3..6.png` from `pingus.cpp` (page 8 reuses
+    `story6`). Music `pingus-4.it` still deferred.
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
 

@@ -1,54 +1,22 @@
 val pico = require "pico"
 
+val DATA  = require "data/stories/tutorial_intro"
+
 val BOARD  = "data/images/core/menu/blackboard.png"
-val TITLE  = "The Journey Begins"
 val BUTTON = [
     image = "data/images/core/misc/next.png",
     hover = "data/images/core/misc/next_hover.png",
     sound = "data/sounds/tick.wav",
 ]
 
-;; Pages: each is a story0..N drawing + its pre-wrapped text.
-;; (The original word-wraps to ~570px via break_line; here the
-;; lines are hand-wrapped. Full `.story` parsing is deferred.)
-
-val PAGES = [
-    [
-        img = "data/images/story/story0.png",
-        lines = [
-            "For a long time, the Pingus have lived happily in peace",
-            "on the South Pole along with all the other animals.",
-            "Everything was in balance and it seemed like nothing",
-            "could disrupt their peace. The Pingus were happy and",
-            "it seemed like this could never end.",
-        ],
-    ],
-    [
-        img = "data/images/story/story1.png",
-        lines = [
-            "But then one day, things began to change slowly:",
-            "the sky got darker and the earth got warmer. Firstly,",
-            "they thought this was just a normal fluctuation in the",
-            "world's climate, but things seemed to get worse and",
-            "worse with every year.",
-        ],
-    ],
-    [
-        img = "data/images/story/story2.png",
-        lines = [
-            "The snow began to melt away in a few areas and food",
-            "became an issue. Other animals tried to leave the",
-            "region to search for colder areas, but the Pingus knew",
-            "that this wouldn't help: they knew that they had to do",
-            "something about it.",
-        ],
-    ],
-]
+;; Title + pages loaded from the generated data file (mirrors the
+;; C++ `stories/tutorial_intro.story`, pre-wrapped). Page shape:
+;; { img, lines }.
 
 task () {
     ;; static backdrop + title + >>> button (whole intro)
     spawn Image(BOARD, ['%', x=0.5, y=0.5, w=1, h=1])
-    spawn Text(TITLE, ['%', x=0.5, y=0.13, h=0.06])
+    spawn Text(DATA.title, ['%', x=0.5, y=0.13, h=0.06])
     spawn Button(:Next, 1, BUTTON, nil) <- ['%', x=0.85, y=0.85]
 
     ;; pages: type each line letter-by-letter — finished lines stay in
@@ -56,7 +24,7 @@ task () {
     ;; 50ms. An advance (>>> click or Space) mid-reveal snaps to the
     ;; full page (next one pages on); Escape or the last page returns.
     watching :key.dn [key='Escape'] {
-        loop _, page in PAGES {
+        loop _, page in DATA.pages {
             spawn Image(page.img, ['%', x=0.5, y=0.39])
             pin ls = tasks(#page.lines)
             watching (:o.click.dn || :key.dn [key='Space']) {
