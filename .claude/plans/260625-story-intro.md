@@ -31,6 +31,8 @@ This is the simpler of the two — port it first.
     `story6`). Music `pingus-4.it` still deferred.
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
+- [ ] typewriter jitter: the already-typed prefix still snaps 1px
+  *up* as the line grows (confirmed, see below)
 
 ## Next step (explicit)
 
@@ -61,6 +63,47 @@ Wire `story/intro.atm` to the generated data file:
   (page (surface (image "story/story0")) (text "..." "..."))
   ... ~7 pages ...))
 ```
+
+## Typewriter jitter (confirmed still present)
+
+The per-char reveal re-spawns `Text(string.sub(line,1,c), r)` into an
+**auto-width** rect (`['%', …, h=0.025, anchor=:W]`, `w` unset).
+Every added char re-renders the *whole* line, so the already-typed
+prefix shifts.
+
+Measured headless (boot straight into `Story`, xvfb 800x600, capture
+the first line typing char-by-char; row-profile of the fixed prefix
+"For a long", x 262-430):
+
+| frame | line width | top row | centroid-Y |
+|-------|------------|--------:|-----------:|
+| g_01  | short      | 382     | 386.08     |
+| g_02  | +1 char    | 381     | 385.40     |
+| g_03+ | growing    | 381     | 385.36 (stable) |
+
+The whole prefix jumps **up 1px (382 -> 381)** early in the reveal,
+then settles once the line is wide enough.
+Frame-to-frame XOR on the stable left third: 230/110/100 changed px
+in those same early frames (the visible shimmer).
+
+Root cause (per pico-sdl note): a glyph string renders once at native
+`W0 x H0`, then scales to a box of height `h` with width auto-derived
+as `rect.w = round(h · W0 / H0)`, integer-rounded **per string**.
+As `W0` grows char-by-char the scale oscillates around `h/H0`,
+remapping every glyph (here on the y-axis -> the 1px up-snap), and
+converges once `W0` is large.
+An earlier partial fix (resolve `h` to a point size so `H0 ≈ h`) did
+*not* remove it: TTF can't render exactly `h` px, so per-string width
+rounding still drifts.
+
+Fixes (either):
+
+- **lib (pico-sdl):** stop re-quantising width per string — blit at a
+  constant scale (`SDL_RenderCopyF`, or draw auto-width text 1:1 at
+  `W0 x H0`); root cause for all callers. `src/output.c` -> `_rnd_dim`.
+- **port (here):** render the full line once and reveal a growing
+  substring/clip, instead of re-spawning `Text` into an auto-width
+  rect each char — sidesteps per-string scaling entirely.
 
 ## Screen
 
