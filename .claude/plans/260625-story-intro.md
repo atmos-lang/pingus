@@ -29,8 +29,12 @@ This is the simpler of the two — port it first.
   `intro.atm` now `require`s it (replaced hardcoded `TITLE`/`PAGES`).
   - [x] copied `story3..6.png` from `pingus.cpp` (page 8 reuses
     `story6`). Music `pingus-4.it` still deferred.
+- [x] continue to the worldmap after the last page: `story/init.atm`
+  chains `await Intro()` then `await World()` (worldmap from
+  `260625-story-world.md`)
 - [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
 - [ ] continue to the worldmap after the last page
+- [ ] music `pingus-4.it` (defer; not copied)
 - [ ] typewriter jitter: the already-typed prefix still snaps 1px
   *up* as the line grows (confirmed, see below)
 
