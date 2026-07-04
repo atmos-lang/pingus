@@ -32,11 +32,11 @@ This is the simpler of the two — port it first.
 - [x] continue to the worldmap after the last page: `story/init.atm`
   chains `await Intro()` then `await World()` (worldmap from
   `260625-story-world.md`)
-- [ ] original chalk font (defer; pico default — `260624-font-bitmap.md`)
-- [ ] continue to the worldmap after the last page
-- [ ] music `pingus-4.it` (defer; not copied)
-- [ ] typewriter jitter: the already-typed prefix still snaps 1px
-  *up* as the line grows (confirmed, see below)
+- [x] typewriter jitter: FIXED (pico-sdl font-scale + window-clip
+  work; horizontal wobble + vertical snap both resolved upstream)
+- [ ] music `pingus-4.it` — NOT done (no `data/music/` dir, no
+  playback code anywhere in the port)
+- [ ] original chalk font — deferred to `260624-font-bitmap.md`
 
 ## Next step (explicit)
 
