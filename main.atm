@@ -14,5 +14,37 @@ task Blank (text) {
     }
 }
 
+;; Window-based reveal: freeze the old screen onto the window layer as a
+;; static background, then grow a WINDOW clip so the live `world` screen
+;; composites only inside the growing box (needs the pico-sdl window-clip
+;; fix: the parent clip now scissors the world->window composite).
+task Transition () {
+    pico.layer.screenshot('~', nil, :on)
+    defer {
+        pico.set.layer("window")
+        pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+        pico.set.layer("world")
+    }
+
+    var p = 0.0
+    watching until p==1 {
+        par {
+            ;; ramp p 0 -> 1
+            loop us on :clock {
+                set p = math.min(1, p + ((math.min(us, 40000) / 1000000) * 2))
+            }
+        } with {
+            ;; old screenshot = window background; window clip = the box
+            loop on :draw {
+                pico.set.layer("window")
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
+                pico.output.draw.layer(:on, ['%', x=0.5, y=0.5, w=1, h=1])
+                pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=p, h=p] ]
+                pico.set.layer("world")
+            }
+        }
+    }
+}
+
 val Menu = require "menu"
 await Menu()

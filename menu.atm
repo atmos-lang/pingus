@@ -81,19 +81,29 @@ val task Menu () {
 val Story = require "story"
 
 task () {
+    pin ts = tasks()
     pin menu = spawn Menu()
     loop {
-        pico.push()
-        defer {
-            pico.pop()
-        }
         val e = await :o.click.dn
-        match e.id {
-            :Story   => await Fade(menu, Story)
-            :Editor  => await Fade(menu, Blank, "Editor")
-            :Levels  => await Fade(menu, Blank, "Levelsets")
-            :Options => await Fade(menu, Blank, "Options")
-            :Exit    => break()
+
+        spawn @ts Transition()
+        toggle menu(false)
+
+        do {
+            pico.push()
+            defer {
+                pico.pop()
+            }
+            match e.id {
+                :Story   => await Story()
+                :Editor  => await Blank("Editor")
+                :Levels  => await Blank("Levelsets")
+                :Options => await Blank("Options")
+                :Exit    => break()
+            }
         }
+
+        toggle menu(true)
+        spawn @ts Transition()
     }
 }
