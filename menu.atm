@@ -81,12 +81,11 @@ val task Menu () {
 val Story = require "story"
 
 task () {
-    pin ts = tasks()
     pin menu = spawn Menu()
     loop {
         val e = await :o.click.dn
 
-        spawn @ts Transition()
+        emit @TRANSITION :transition.restart
         toggle menu(false)
 
         do {
@@ -104,6 +103,6 @@ task () {
         }
 
         toggle menu(true)
-        spawn @ts Transition()
+        emit @TRANSITION :transition.restart
     }
 }
