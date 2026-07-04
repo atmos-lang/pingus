@@ -48,9 +48,15 @@ A bare layer-switch is insufficient; do not repeat it.
 
 ## Status
 
-- [ ] determine pico clip/composite semantics (parent clip vs child
-  render)
-- [ ] pick an approach (overlay layer vs two-snapshot vs other)
-- [ ] implement; confirm the wipe is screen-aligned over the map
-  (slow the wipe to inspect -- the xvfb clock is unthrottled, so it is
-  otherwise near-instant)
+DONE. Implemented as a window-space reveal.
+
+- [x] clip/composite semantics: found a pico-sdl bug — the composite
+  (`_pico_draw_all_pos`) didn't re-apply the parent (window) clip;
+  fixed upstream so a window clip now scissors the world->window
+  composite.
+- [x] approach: single persistent `Transition` task in `main.atm` —
+  screenshot the old screen onto the `window` layer, grow a `window`
+  clip so the live `world` reveals through the box; restarted via
+  `emit @TRANSITION :transition.restart` from the menu dispatch.
+- [x] implemented + verified live: IN (menu->screen) and OUT
+  (screen->menu) wipes render screen-aligned, no crash.
