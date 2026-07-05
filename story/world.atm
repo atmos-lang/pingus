@@ -42,7 +42,7 @@ val NODES = [
 ;; Button` sits in a par branch, which adds a task level, so target=3
 ;; (Button -> branch -> Hud -> World; see bug.atm).
 val task Hud () {
-    pico.layer.empty(:window, :hud, true, ['%', w=1, h=1])
+    pico.layer.empty [ up=:window, key=:hud, clear=true, target=['%', x=0.5, y=0.5, w=1, h=1] ]
     par {
         loop {
             pico.set.layer(:hud)

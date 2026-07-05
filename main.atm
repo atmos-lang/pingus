@@ -23,7 +23,7 @@ pin transition = spawn (task () {
     loop {
         watching :transition.restart {
             do {
-                pico.layer.screenshot('~', nil, :transition)
+                pico.layer.screenshot [ mode='~', key=:transition, sup=:window ]
                 defer {
                     pico.set.layer :window
                     pico.set.scene [ clip = ['%', x=0.5, y=0.5, w=1, h=1] ]
