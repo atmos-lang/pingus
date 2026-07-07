@@ -30,32 +30,15 @@ task Text (text, rect, color) {
     }
 }
 
-;; Object: invisible hit-region over `rect`. Exposes its rect + live
-;; pointer/button state via `pub`, and emits transitions carrying
-;; [id=id, obj=pub] to `target` (a level count) or, if omitted, the
-;; parent. Consumers filter by `id` (e.g. `await :o.* [id=me]`).
-;;
-;;   pub.id                    - the caller id, echoed on every event
-;;   pub.rect                  - the geometry (read-only)
-;;   pub.over                  - bool, pointer is over the rect
-;;   pub.left/right/middle     - mirrored mouse buttons (valid while over)
-;;
-;; Events:  :o.over.on / :o.over.off   on enter / leave
-;;          :o.click.dn / :o.click.up  on press / release while over
-task Object (id, rect, target) {
-    val tgt = target || :parent
-
-    ;; pub = the object: its rect + state, derived from the pointer
-    val m = pico.get.mouse('%')
-    set pub = [
-        id     = id,
-        rect   = rect,
+task Object (me, tgt) {
+    set me.pub = me.pub ++ [
         over   = over,
         left   = over && m.left,
         right  = over && m.right,
         middle = over && m.middle,
     ] where {
-        over = pico.vs.pos.rect(m, rect)
+        m = pico.get.mouse('%')
+        over = pico.vs.pos.rect(m, me.pub.rect)
     }
 
     par {
@@ -65,10 +48,10 @@ task Object (id, rect, target) {
             @(false) = :o.over.off,
         ]
         loop e on :mouse.motion {
-            val over = pico.vs.pos.rect(e, rect)
-            if over != pub.over {
-                set pub.over = over
-                emit @(tgt) [tag=tags@over, id=id, obj=pub]
+            val over = pico.vs.pos.rect(e, me.pub.rect)
+            if over != me.pub.over {
+                set me.pub.over = over
+                emit @(tgt) [tag=tags@over, me=me, id=me.pub.id]
             }
         }
     } with {
@@ -77,24 +60,22 @@ task Object (id, rect, target) {
             @(:mouse.button.dn) = :o.click.dn,
             @(:mouse.button.up) = :o.click.up,
         ]
-        loop e on :mouse.button until pub.over {
-            set pub.left   = e.left
-            set pub.right  = e.right
-            set pub.middle = e.middle
-            emit @(tgt) [tag=tags@(e.tag), id=id, obj=pub]
+        loop e on :mouse.button until me.pub.over {
+            set me.pub.left   = e.left
+            set me.pub.right  = e.right
+            set me.pub.middle = e.middle
+            emit @(tgt) [tag=tags@(e.tag), me=me, id=me.pub.id]
         }
     }
 }
 
-;; Button: Object + base/highlight Image (+ optional `text` label);
-;; tick on enter. The Object sits one level deeper, so it emits
-;; :o.* [id=id] to @(target+1) -- the caller's dispatcher filters
-;; clicks by id and this button filters its own hover. `target` is
-;; relative to the caller (0 = the caller, 1 = its parent, ...).
-;; `style` = [image, hover, sound].
 task Button (id, target, style, text, rect) {
+    set pub = [
+        id   = id,
+        rect = rect,
+    ]
     pico.get.image(rect, style.image)
-    spawn Object(id, rect, target+1)
+    spawn Object(task, target+1)
     spawn Image(style.image, rect)
     pin hl = spawn Image(style.hover, rect)
     toggle hl(false)                     ;; hidden until the pointer enters
@@ -107,10 +88,10 @@ task Button (id, target, style, text, rect) {
 
     ;; show highlight + tick while the pointer is over this button
     loop {
-        await :o.over.on [id=id]
+        await :o.over.on [me=task]
         pico.output.sound(style.sound)
         toggle hl(true)
-        await :o.over.off [id=id]
+        await :o.over.off [me=task]
         toggle hl(false)
     }
 }
