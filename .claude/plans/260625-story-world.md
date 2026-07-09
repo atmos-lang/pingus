@@ -27,10 +27,18 @@ the algorithmic parts.
   (`Button -> branch -> Hud -> World`, see `bug.atm`). Verified
   offscreen: hover highlights, click returns to the menu (scene
   restored).
-- [ ] **NEXT: dots hover/click live** (the only slice-1 gap) -- see
-  "Next step" below
-- [ ] re-enable `await Intro()` in `story/init.atm` (commented out
-  while testing the worldmap; restore intro -> world flow)
+- [x] **dots hover/click live**: `gui.atm` `Object` motion loop now
+  hit-tests `pico.get.mouse('%')` (cursor projected into the current
+  layer) instead of the raw window-pixel event `e` -- dots on the
+  retargeted `:world` layer are clickable; window-space buttons
+  unchanged (`get.mouse == e` there). See "Next step" below.
+- [x] blue **"Watch Intro"** story dot: added the original `introdot`
+  (map 429,760, `status=:story`, `story_dot.png`/`_highlight`) as a
+  `:story` NODE -> act `:Intro`. Dispatch `break(:intro)`; `Leave`
+  now `break(:leave)`. `story/init.atm` loops: `await World()` ->
+  `:intro` replays `Intro()` then re-enters the map, `:leave` exits.
+  Copied `story_dot{,_highlight}.png` into the repo.
+- [x] `await Intro()` active in `story/init.atm` (intro -> world flow)
 - [x] leave button: full-window `:hud` made in `Hud`; `loop { set :hud;
   await(true) }` sets `:hud` at init so `get.image` sizes `'%'` vs
   `:hud`; flush SW like C++ (`SurfaceButton(0, h-37)`); "Leave" label

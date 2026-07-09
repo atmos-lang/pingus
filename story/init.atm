@@ -1,8 +1,16 @@
 val Intro = require "story.intro"
 val World = require "story.world"
 
-;; the Story flow: the intro pages, then the worldmap.
+;; the Story flow: the intro pages, then the worldmap. The worldmap's
+;; blue "Watch Intro" dot returns :intro to replay the intro and re-enter
+;; the map; the Leave button returns :leave to exit back to the menu.
 task () {
     await Intro()
-    await World()
+    loop {
+        val v = await World()
+        match  {
+            :intro => await Intro()
+            :leave => break()
+        }
+    }
 }

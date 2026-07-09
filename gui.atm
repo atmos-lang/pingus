@@ -48,7 +48,8 @@ task Object (me, tgt) {
             @(false) = :o.over.off,
         ]
         loop e on :mouse.motion {
-            val over = pico.vs.pos.rect(e, me.pub.rect)
+            val m = pico.get.mouse('%')
+            val over = pico.vs.pos.rect(m, me.pub.rect)
             if over != me.pub.over {
                 set me.pub.over = over
                 emit @(tgt) [tag=tags@over, me=me, id=me.pub.id]
