@@ -5,10 +5,10 @@ val World = require "story.world"
 ;; blue "Watch Intro" dot returns :intro to replay the intro and re-enter
 ;; the map; the Leave button returns :leave to exit back to the menu.
 task () {
-    await Intro()
+    ;;await Intro()
     loop {
         val v = await World()
-        match  {
+        match v {
             :intro => await Intro()
             :leave => break()
         }
