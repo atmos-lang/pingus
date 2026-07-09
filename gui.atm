@@ -52,7 +52,7 @@ task Object (me, tgt) {
             val over = pico.vs.pos.rect(m, me.pub.rect)
             if over != me.pub.over {
                 set me.pub.over = over
-                emit @(tgt) [tag=tags@over, me=me, id=me.pub.id]
+                emit @me <- tags@over     ;; ignore tgt (only up task)
             }
         }
     } with {
@@ -65,7 +65,7 @@ task Object (me, tgt) {
             set me.pub.left   = e.left
             set me.pub.right  = e.right
             set me.pub.middle = e.middle
-            emit @(tgt) [tag=tags@(e.tag), me=me, id=me.pub.id]
+            emit @tgt [tag=tags@(e.tag), me=me, id=me.pub.id]
         }
     }
 }
@@ -89,10 +89,10 @@ task Button (id, target, style, text, rect) {
 
     ;; show highlight + tick while the pointer is over this button
     loop {
-        await :o.over.on [me=task]
+        await :o.over.on
         pico.output.sound(style.sound)
         toggle hl(true)
-        await :o.over.off [me=task]
+        await :o.over.off
         toggle hl(false)
     }
 }
