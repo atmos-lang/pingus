@@ -27,49 +27,99 @@ the algorithmic parts.
   (`Button -> branch -> Hud -> World`, see `bug.atm`). Verified
   offscreen: hover highlights, click returns to the menu (scene
   restored).
-- [ ] **NEXT: dots hover/click live** (the only slice-1 gap) -- see
-  "Next step" below
-- [ ] re-enable `await Intro()` in `story/init.atm` (commented out
-  while testing the worldmap; restore intro -> world flow)
+- [x] **dots hover/click live**: `gui.atm` `Object` motion loop now
+  hit-tests `pico.get.mouse('%')` (cursor projected into the current
+  layer) instead of the raw window-pixel event `e` -- dots on the
+  retargeted `:world` layer are clickable; window-space buttons
+  unchanged (`get.mouse == e` there). See "Next step" below.
+- [x] blue **"Watch Intro"** story dot: added the original `introdot`
+  (map 429,760, `status=:story`, `story_dot.png`/`_highlight`) as a
+  `:story` NODE -> act `:Intro`. Dispatch `break(:intro)`; `Leave`
+  now `break(:leave)`. `story/init.atm` loops: `await World()` ->
+  `:intro` replays `Intro()` then re-enters the map, `:leave` exits.
+  Copied `story_dot{,_highlight}.png` into the repo.
 - [x] leave button: full-window `:hud` made in `Hud`; `loop { set :hud;
   await(true) }` sets `:hud` at init so `get.image` sizes `'%'` vs
   `:hud`; flush SW like C++ (`SurfaceButton(0, h-37)`); "Leave" label
   via `pico.xin.rect`; freed on exit by `menu.atm` `push`/`pop`.
+- [~] `story/init.atm`: intro -> world loop wired, BUT `await Intro()`
+  is currently commented (`;;await Intro()`) for faster world testing.
+  RESTORE before final (see Next step 0).
+- [ ] **VERIFY offscreen** the clickable-dots + Watch-Intro work (Next
+  step 0) -- NOT yet run
 - [ ] slice 2: walking pingu along paths (path graph + traversal)
 - [ ] slice 3: camera follow + parallax layers
 - [ ] slice 4: real savegame status, outro/credits, sounds
 - [ ] continue here from the intro story's last page
 
-## Next step: clickable dots
+## Next steps (explicit — resume here on the other machine)
 
-The dots draw on `:world` (the map), but the mouse event `e` is in
-**window pixels** (`input.c:218`, "regardless of current layer"). The
-gui `Object` does `pico.vs.pos.rect(e, rect)` with no layer arg, so it
-reads `e` in the current layer (`:world` = map) -> the dot hit-test
-always misses. (The leave button dodged this only because its `:hud`
-is window-sized, so window px == layer px.)
+Clickable dots + the blue "Watch Intro" dot are IMPLEMENTED but
+UNVERIFIED. Uncommitted edits touch: `gui.atm`, `story/world.atm`,
+`story/init.atm`, and two new assets under
+`data/images/core/worldmap/`. Work top-down.
 
-Fix -- switch `Object` from the raw event `e` to `pico.get.mouse`,
-which projects the window cursor into the current layer through the
-scene (`input.c:41` `pico_cv_pos`):
+### 0. Restore + verify what's already implemented
 
-| where (`gui.atm` `Object`) | from | to |
-|----------------------------|------|----|
-| motion loop | `pico.vs.pos.rect(e, rect)` | `pico.vs.pos.rect(pico.get.mouse('%'), rect)` |
-| button loop | (uses `pub.over`) | unchanged -- `pub.over` now correct |
+- `story/init.atm`: un-comment `await Intro()` (currently
+  `;;await Intro()`) so the flow is intro -> world again.
+- Ask the user to run offscreen (never run the game yourself):
+    - `xvfb-run -a -s "-screen 0 800x600x24" pingus` on the port, then
+      `import -window root out.png`.
+- Confirm:
+    - hovering any dot highlights it + plays `tick`;
+    - clicking the blue **Watch Intro** dot (map 429,760) replays the
+      intro, then returns to the map;
+    - clicking an `:invalid` dot plays `chink`; `:green`/`:red` tick;
+    - **Leave** still returns to the menu (scene restored).
+- What changed (so a fresh session has context):
+    - `gui.atm` `Object` motion loop: hit-test
+      `pico.vs.pos.rect(pico.get.mouse('%'), rect)` (not raw `e`) so
+      dots on the retargeted `:world` layer are clickable; window-space
+      buttons unchanged (`get.mouse == e` there).
+    - `story/world.atm`: added `introdot` NODE (`status=:story`), a
+      `:story` sprite branch (`story_dot.png`/`story_dot_highlight.png`)
+      and `act=:Intro`; dispatch `break(:intro)` / `break(:leave)`.
+    - `story/init.atm`: loop — `await World()` returns `:intro`
+      (replay `Intro()`) or `:leave` (exit to menu).
 
-- `pub` init already uses `get.mouse('%')`, so this just makes the
-  motion loop consistent -- no new layer juggling, no `:window` hint.
-- dot `target` is already `2` (the pool adds a level; see the pool
-  test), so once the hit-test lands, the click dispatches to `World`.
-- caveat: `get.mouse` reads the live cursor, which on a `:mouse.motion`
-  equals `e`'s position -- so behaviour for window-space buttons
-  (menu, leave) is unchanged; only off-window-layer hit-tests get fixed.
-- this is the same `Object` touched by `260629-object.md`; this fix is
-  small and orthogonal, so do it first, then the id refactor on top.
+### 1. Parse `data/worldmaps/tutorial.worldmap` (kill hardcoded NODES)
 
-Verify offscreen: hover a dot (highlight + tick), click an `:Open`
-dot (tick) and an `:invalid` dot (chink).
+`NODES` in `story/world.atm` is the only remaining inlined data file
+(the intro `.story` is already a `require`d module). Mirror that:
+convert the s-expr to an Atmos data module, then `require` it.
+
+- Source: `pingus.cpp/data/worldmaps/tutorial.worldmap` (s-expr:
+  `worldmap.objects` = `leveldot`/`storydot` with `dot.name`,
+  `dot.position x y`, `levelname` or `story`; `worldmap.graph.edges`
+  = `edge` with `source`/`destination`/`positions`).
+- Emit `data/worldmaps/tutorial.atm` returning
+  `[ dim, layer, nodes, edges ]` where each node is
+  `[ name, x, y, kind (:level|:story), ref ]`.
+- In `story/world.atm`: replace `val NODES = [...]` with
+  `val DATA = require "data/worldmaps/tutorial"` and derive `NODES`
+  from `DATA.nodes` (map real status later — keep mock status until
+  slice 4 savegame).
+- Naming caveat (from the intro port): `require` turns every `.` into
+  `/`, so drop the inner `.worldmap` from the module name (use
+  `tutorial.atm`, not `tutorial.worldmap.atm`).
+
+### 2. Slice 2 — walking pingu along paths
+
+- Use `DATA.edges` (from step 1) as the path graph.
+- Introduce the `Sprite` task (draw + frame-animation + hotspot;
+  left/right frames) — see "Sprite / Component" below.
+- On a reachable dot click: walk the pingu edge-by-edge
+  (Continuation pattern — accumulate position per frame until the
+  edge completes, then the next edge), then enter/replay.
+- Hover mutual-exclusion caveat: worldmap dots may overlap; our
+  per-task hover has none (unlike C++ `mouse_over_comp`). Add a
+  shared "hovered id" / z-order check if overlaps misbehave.
+
+### 3. Then slices 3-4
+
+- slice 3: camera follows the pingu + parallax layers (SpriteDrawable).
+- slice 4: real savegame status (dot colors), outro/credits, sounds.
 
 ## Behavior (from C++/Céu survey)
 

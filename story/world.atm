@@ -27,8 +27,11 @@ val LEAVE = [
     sound = SOUNDS.tick,
 ]
 
-;; slice-1 nodes: literal map-pixel position + mock status
+;; slice-1 nodes: literal map-pixel position + mock status. The blue
+;; :story dot is the original `introdot` ("Watch Intro"): clicking it
+;; replays the intro story (see the :Intro dispatch below).
 val NODES = [
+    [ x=429, y=760, status=:story   ],
     [ x=513, y=713, status=:red     ],
     [ x=618, y=703, status=:green   ],
     [ x=704, y=659, status=:invalid ],
@@ -81,14 +84,16 @@ val task World () {
     pin dots = tasks(#NODES)
     loop _, nd in NODES {
         val sp = match nd.status {
-            :green   => [ image=DIR++"dot_green.png",   hover=DIR++"dot_green_hl.png", sound=SOUNDS.tick ]
-            :red     => [ image=DIR++"dot_red.png",     hover=DIR++"dot_red_hl.png",   sound=SOUNDS.tick ]
-            :invalid => [ image=DIR++"dot_invalid.png", hover=DIR++"dot_invalid.png",  sound=SOUNDS.tick ]
+            :green   => [ image=DIR++"dot_green.png",   hover=DIR++"dot_green_hl.png",       sound=SOUNDS.tick ]
+            :red     => [ image=DIR++"dot_red.png",     hover=DIR++"dot_red_hl.png",         sound=SOUNDS.tick ]
+            :invalid => [ image=DIR++"dot_invalid.png", hover=DIR++"dot_invalid.png",        sound=SOUNDS.tick ]
+            :story   => [ image=DIR++"story_dot.png",   hover=DIR++"story_dot_highlight.png", sound=SOUNDS.tick ]
         }
         val act = match nd.status {
             :green   => :Open
             :red     => :Open
             :invalid => :Locked
+            :story   => :Intro
         }
         spawn @dots Button(act, 2, sp, nil) <- ['!', x=nd.x, y=nd.y]
     }
@@ -100,11 +105,13 @@ val task World () {
     ;; fixed UI overlay (leave button) on :hud
     spawn Hud()
 
-    ;; dispatch: Leave -> menu; locked dot -> chink; open dot -> ack
+    ;; dispatch: Leave -> menu (:leave); Intro dot -> replay intro
+    ;; (:intro, handled by story/init.atm); locked -> chink; open -> ack
     loop {
         val e = await :o.click.dn
         match e.id {
-            :Leave  => break()
+            :Leave  => break(:leave)
+            :Intro  => break(:intro)
             :Locked => pico.output.sound(SOUNDS.chink)
             :Open   => pico.output.sound(SOUNDS.tick)
         }
