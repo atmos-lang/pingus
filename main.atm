@@ -31,7 +31,7 @@ pin transition = spawn (task () {
                 }
 
                 var p = 0.0
-                watching until p==1 {
+                watching until (p==1) {
                     par {
                         ;; ramp p 0 -> 1
                         loop us on :clock {
